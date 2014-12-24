@@ -54,7 +54,7 @@ foreach(@files){
     }
 
     my $name=$file;
-    if($file =~ /(\w+)_R[1|2]_/){
+    if($file =~ /(.+)_R[1|2]_/){
 	$name=$1;
     }
     push(@{$paired_files{$name}},$_);
