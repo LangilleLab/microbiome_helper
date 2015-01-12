@@ -15,33 +15,68 @@ from biom.parse import parse_biom_table
 from os.path import join,splitext
 import gzip
 import sys
+import re
+
 script_info = {}
-script_info['brief_description'] = "Convert a PICRUST KO BIOM file to a compatible STAMP profile table FOR A GIVEN KEGG PATHWAY"
-script_info['script_description'] = "This handles the one-to-many mapping of KOs to KEGG Pathways. Since STAMP does not handle one-to-many mappings, the -p option should be used to limit to only a single KEGG Pathway. Also, this pulls the KEGG Ortholog descriptions for each KO id."
+script_info['brief_description'] = "Convert a BIOM table to a compatible STAMP profile table."
+script_info['script_description'] = "Metadata will be parsed and used as hiearachal data for STAMP."
 
 script_info['script_usage'] = [\
-("Minimum Requirements (not compatible with STAMP)","","%prog -i ko.biom  > ko.spf"),
-("Using PICRUSt KO table","","%prog -i ko.biom -p 'Benzoate_degradation' > ko_benzoate.spf"),
+("Minimum Requirments","","%prog table1.biom > table1.spf"),
+("OTU table from QIIME","","%prog -m taxonomy otu_table.biom > otu_table.spf"),
+("KO file from PICRUSt","","%prog -m KEGG_Description ko.biom > ko.spf"),
+("KEGG Pathways table from PICRUSt","","%prog -m KEGG_Pathways ko_L3.biom > ko_L3.spf"),
+("Function table from MG-RAST","","%prog -m ontology table1.biom > table1.spf")
 ]
 
-script_info['output_description']= "A STAMP profile containing KOs for a given KEGG Pathway"
+script_info['output_description']= "Output is written to STDOUT"
 
-script_info['optional_options']=[\
-make_option('-p','--pathway',default=None,type="string",help='Name of KEGG Pathway.[default: %default')]
+script_info['optional_options'] = [\
+    make_option('-m','--metadata',default=None,type="string",help='Name of metadata. [default: %default]')]
 
-script_info['required_options'] = [\
-make_option('-i','--input_fp',type="existing_filepath",help='the input PICRUSt KO filepath in biom format (.biom)')]
+
+script_info['disallow_positional_arguments'] = False
 
 script_info['version'] = __version__
        
+def process_metadata(metadata,metadata_name,obs_id):
+    if metadata_name =='taxonomy':
+        fixed_metadata=[]
+        for idx,val in enumerate(metadata):
+            if(re.match(r'[a-z]__$',val)):
+                metadata[idx]=metadata[idx-1]+'_'+val
+                fixed_metadata.append(metadata[idx])
+            else:
+                fixed_metadata.append(val)
+        return fixed_metadata
+
+    elif metadata_name == 'KEGG_Pathways':
+        if metadata[0]=='Unclassified':
+            #Remove "Unclassified" from the first of the levels
+            del metadata[0]
+            metadata.append(metadata[-1]+'_Unclassified')
+        return metadata
+    elif metadata_name == 'KEGG_Description':
+        #import pdb; pdb.set_trace()
+        single_metadata= ' or '.join(metadata)
+        single_metadata=obs_id+': '+single_metadata
+        return [single_metadata]
+    else:
+        return metadata
+
+    
+
+    
 
 def main():
     option_parser, opts, args =\
                    parse_command_line_parameters(**script_info)
 
-    file_name=opts.input_fp
-    metadata_name='KEGG_Pathways'
-    id_description='KEGG_Description'
+    min_args = 1
+    if len(args) < min_args:
+       option_parser.error('A BIOM file must be provided.')
+
+    file_name = args[0]
 
     #allow file to be optionally gzipped (must use extension '.gz')
     ext=splitext(file_name)[1]
@@ -50,43 +85,60 @@ def main():
     else:
         table = parse_biom_table(open(file_name,'U'))
 
+    metadata_name=opts.metadata
+
+    if metadata_name is None:
+        max_len_metadata=0
+    elif metadata_name == 'KEGG_Description':
+        max_len_metadata=1
+    elif table.ObservationMetadata and metadata_name in table.ObservationMetadata[0]:
+       
+        max_len_metadata = max(len(p[metadata_name]) for p in table.ObservationMetadata)
+    else:
+        raise ValueError("'"+metadata_name+"' was not found in the BIOM table. Please try changing --metadata to a valid metadata field.")
+
+    include_obs_id=True
+    if metadata_name in ["KEGG_Pathways","KEGG_Description"]:
+        include_obs_id=False
+
     #make the header line
-    header=['Level_1','Level_2','KEGG_Pathway','KEGG_Ortholog']
+    header=[]
+
+    #make simple labels for each level in the metadata (e.g. 'Level_1', 'Level_2', etc.) "+1" for the observation id as well.
+    extra_levels=0
+    if include_obs_id:
+        extra_levels=1
+        
+    for i in range(max_len_metadata+extra_levels):
+        header.append('Level_'+ str(i+1))
     
     #add the sample ids to the header line
     header.extend(table.SampleIds)
-
-    print "\t".join(header)
     
-    max_len_metadata=3
+    print "\t".join(header)
+
     #now process each observation (row in the table)
     for obs_vals,obs_id,obs_metadata in table.iterObservations():
-        #import pdb;pdb.set_trace()
-        ko_description=obs_metadata[id_description]
-        if type(ko_description) is list:
-            ko_description="; ".join(ko_description)
+        row=[]
+        if max_len_metadata >0:
+            row=process_metadata(obs_metadata[metadata_name],metadata_name,obs_id)
+        
+        #Add blanks if the metadata doesn't fill each level
+        if len(row) < max_len_metadata:
+            for i in range(max_len_metadata - len(row)):
+                row.append('')
 
-        for pathway in obs_metadata[metadata_name]:
-           
-            #Check to make sure the metadata has the correct number of levels
-            
-            if len(pathway) < max_len_metadata:
-                for i in range(max_len_metadata - len(pathway)):
-                    pathway.append('')
+        if include_obs_id:
+            #Add the observation id as the last "Level"
+            if obs_id.isdigit():
+                #Need to add something to the id if it a number identfier (e.g. gg OTU ids)
+                row.append('ID'+'_'+obs_id)
+            else:
+                row.append(obs_id)
 
-            #skip pathways that don't match what the user wants to keep
-            if opts.pathway:
-                if not opts.pathway == pathway[2]:
-                    continue
-
-            ko_label=obs_id+': '+ko_description
-            
-            #Add the ko_label as the last "Level"
-            pathway.append(ko_label)
-
-            #Add count data to the row
-            pathway.extend(map(str,obs_vals))
-            print "\t".join(pathway)
+        #Add count data to the row
+        row.extend(map(str,obs_vals))
+        print "\t".join(row)
         
     
 
