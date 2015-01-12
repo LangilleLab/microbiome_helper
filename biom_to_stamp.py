@@ -124,9 +124,12 @@ def main():
             row=process_metadata(obs_metadata[metadata_name],metadata_name,obs_id)
         
         #Add blanks if the metadata doesn't fill each level
-        if len(row) < max_len_metadata:
-            for i in range(max_len_metadata - len(row)):
-                row.append('')
+        len_defined_metadata=len(row)
+        if len_defined_metadata < max_len_metadata:
+            last_label=row[-1]
+            for i in range(max_len_metadata - len_defined_metadata):
+                new_label=last_label+'_Unknown_Level_'+str(i+len_defined_metadata+1)
+                row.append(new_label)
 
         if include_obs_id:
             #Add the observation id as the last "Level"
