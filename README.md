@@ -60,4 +60,8 @@ Metagenomics workflow (starting with demultiplexed MiSeq fastq files)
         cd ~/programs/human-0.99/
         scons -j 4
 
-9. Convert humann output to stamp format (To Do)
+9. Convert humann output to stamp format
+
+        humann_to_stamp.py 04b-hit-keg-mpm-cop-nul-nve-nve.txt > hummann_modules.spf
+        humann_to_stamp.py 04b-hit-keg-mpt-cop-nul-nve-nve.txt > hummann_pathways.spf
+		humann_to_stamp.py 01b-hit-keg-cat.txt > hummann_kos.spf
