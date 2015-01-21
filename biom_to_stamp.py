@@ -44,8 +44,7 @@ def process_metadata(metadata,metadata_name,obs_id):
         fixed_metadata=[]
         for idx,val in enumerate(metadata):
             if(re.match(r'[a-z]__$',val)):
-                metadata[idx]=metadata[idx-1]+'_'+val
-                fixed_metadata.append(metadata[idx])
+                fixed_metadata.append("Unclassified")
             else:
                 fixed_metadata.append(val)
         return fixed_metadata
@@ -57,7 +56,6 @@ def process_metadata(metadata,metadata_name,obs_id):
             metadata.append(metadata[-1]+'_Unclassified')
         return metadata
     elif metadata_name == 'KEGG_Description':
-        #import pdb; pdb.set_trace()
         single_metadata= ' or '.join(metadata)
         single_metadata=obs_id+': '+single_metadata
         return [single_metadata]
@@ -98,7 +96,7 @@ def main():
         raise ValueError("'"+metadata_name+"' was not found in the BIOM table. Please try changing --metadata to a valid metadata field.")
 
     include_obs_id=True
-    if metadata_name in ["KEGG_Pathways","KEGG_Description"]:
+    if metadata_name in ["KEGG_Pathways","KEGG_Description",'taxonomy']:
         include_obs_id=False
 
     #make the header line
@@ -123,13 +121,11 @@ def main():
         if max_len_metadata >0:
             row=process_metadata(obs_metadata[metadata_name],metadata_name,obs_id)
         
-        #Add blanks if the metadata doesn't fill each level
+        #Add 'Unclassified' if the metadata doesn't fill each level
         len_defined_metadata=len(row)
         if len_defined_metadata < max_len_metadata:
-            last_label=row[-1]
             for i in range(max_len_metadata - len_defined_metadata):
-                new_label=last_label+'_Unknown_Level_'+str(i+len_defined_metadata+1)
-                row.append(new_label)
+                row.append('Unclassified')
 
         if include_obs_id:
             #Add the observation id as the last "Level"
