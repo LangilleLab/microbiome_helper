@@ -7,21 +7,22 @@
 use warnings;
 use strict;
 
+$_=<>;
+chomp;
+my @header=split(/\t/,$_);
+shift @header;
+foreach my $x(0..$#header){
+    $header[$x]=~ s/-hit-keg-(.*)//; 
+}
+print join("\t",@header),"\n";
 
-my $i=0;
+my $x=0;
 while(<>){
-    $i++;
-    if($i==1){
-	chomp;
-	my @header=split(/\t/,$_);
-	shift @header;
-	foreach my $x(0..$#header){
-	    $header[$x]=~ s/-hit-keg-(.*)//; 
+    if($x==0){
+	if(/^Richness/){
+	    $x=1;
+	    next;
 	}
-	print join("\t",@header),"\n";
-	
-    }elsif($i<19){
-	next;
     }else{
 	chomp;
 	my @values=split(/\t/,$_);
