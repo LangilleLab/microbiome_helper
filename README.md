@@ -9,44 +9,37 @@ Including workflows (see below) for analyzing 16S and shotgun metagenomic data.
 Brief description of scripts
 ----------------------------
 
-* **Human Contamination**
+***Human Contamination***
+        
+* **run_deconseq.pl**: Wraps the deconseq program to filter out human reads from metagenomic data
 
-** **run_deconseq.pl**: Wraps the deconseq program to filter out human reads from metagenomic data
+* **run_human_filter.pl**: Wraps the Bowtie2 program to filter out human reads from metagenomic data (faster than deconseq) 
 
-** **run_human_filter.pl**: Wraps the Bowtie2 program to filter out human reads from metagenomic data (faster than deconseq) 
+***PEAR (Paired-end stitching)***
 
-PEAR (Paired-end stitching)
---------------------
+* **run_pear.pl**: Makes running the PEAR program easier on many samples, by automatically identifying the paired-end files to merge together. 
 
-**run_pear.pl**: Makes running the PEAR program easier on many samples, by automatically identifying the paired-end files to merge together. 
-
-
-STAMP (Statistics and Visualization)
-----------------------------------
+***STAMP (Statistics and Visualization)***
 
 I find STAMP to be a very useful tool for creating figures and doing statistical analyses. Here are scripts to covert tables from different tools into STAMP input profile files.
 
-**metaphlan_to_stamp.pl**: This is script that converts a merged metaphlan output file that was created using all taxnomic ranks to a STAMP profile file. 
+* **metaphlan_to_stamp.pl**: This is script that converts a merged metaphlan output file that was created using all taxnomic ranks to a STAMP profile file. 
 
-**biom_to_stamp.py**: STAMP has built-in BIOM conversion, but depending on where the BIOM file comes from there can be slight format problems with STAMP. Specifically, this script handles PICRUSt BIOM output (both KOs and KEGG Pathways) and QIIME 16S OTU tables (with metadata 'taxonomy').
+* **biom_to_stamp.py**: STAMP has built-in BIOM conversion, but depending on where the BIOM file comes from there can be slight format problems with STAMP. Specifically, this script handles PICRUSt BIOM output (both KOs and KEGG Pathways) and QIIME 16S OTU tables (with metadata 'taxonomy').
 
-**humann_to_stamp.pl**: Converts humann output to stamp format (currently removes extra rows and renames samples ids so they are the same as the orginal file)
+* **humann_to_stamp.pl**: Converts humann output to stamp format (currently removes extra rows and renames samples ids so they are the same as the orginal file)
 
-MetaPhlan (Metagenome taxonomic annotation)
----------
+***MetaPhlan (Metagenome taxonomic annotation)***
 
-**run_metaphlan.pl**: Wraps the Metaphlan package and handles running multiple samples at once as well as handling paired end data a bit more cleaner. It also runs each sample in parallel and merges the results into a single output file. Also, easily allows gzipped or non-gzipped files.
+* **run_metaphlan.pl**: Wraps the Metaphlan package and handles running multiple samples at once as well as handling paired end data a bit more cleaner. It also runs each sample in parallel and merges the results into a single output file. Also, easily allows gzipped or non-gzipped files.
 
-Humann (Metagenome functional annotation)
------------------------------------------
+***Humann (Metagenome functional annotation)***
 
-**run_pre_humann.pl**: Does similarity search against kegg database using search tool diamond using multiple threads. This output is then fed into humann. 
+* **run_pre_humann.pl**: Does similarity search against kegg database using search tool diamond using multiple threads. This output is then fed into humann. 
 
-Other assorted scripts
-----------------------
+***Other assorted scripts***
 
-**run_fastq_to_fasta.pl**: Wraps the fastq_to_fasta command from the FASTX Toolkit to allow the use of multiple threads.
-
+* **run_fastq_to_fasta.pl**: Wraps the fastq_to_fasta command from the FASTX Toolkit to allow the use of multiple threads.
 
 Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 ---------------------
@@ -138,15 +131,16 @@ Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 
         beta_diversity_through_plots.py -m map.txt -t ucrss_sortmerna_sumaclust/rep_set.tre -i final_otu_tables/otu_table.biom -o plots/bdiv_otu
 
-10. alpha rarefaction plot
+10. Create alpha diversity rarefaction plot
 
         alpha_rarefaction.py -i final_otu_tables/otu_table.biom -o plots/alpha_rarefaction_plot -t ucrss_sortmerna_sumaclust/rep_set.tre -m map.txt --min_rare_depth 1000 --max_rare_depth 35000 --num_steps 35
 
-11. convert otu table to stamp
+11. Convert BIOM otu table to STAMP
 
         biom convert -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_json.biom --to-json --table-type "OTU table"
-		#Note: must not be in virtualenv during this next command since it uses biom 1.3.1
-		biom_to_stamp.py -m taxonomy final_otu_tables/otu_table_json.biom >final_otu_tables/otu_table.spf
+        
+        #Note: must not be in virtualenv during this next command since it uses biom 1.3.1
+        biom_to_stamp.py -m taxonomy final_otu_tables/otu_table_json.biom >final_otu_tables/otu_table.spf
 
         #Note: there is are a few OTUs where the genus Clostridium is within the wrong family. Filter these out here.
         grep -P -v "f__Erysipelotrichaceae\tg__Cl" otu_table.spf > tmp.spf
