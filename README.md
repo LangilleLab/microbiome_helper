@@ -101,13 +101,10 @@ Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 
         run_fastq_to_fasta.pl -p -o fasta_files stitched_reads/*.assembled.*
 
-4. Manually create a QIIME "map.txt" file with the first column containing the sample names and another column called "FileInput" containing the filenames. This is a tab-delimited file and there must be columns named "BarcodeSequence" and "LinkerPrimerSequence" that are empy. Example:
+4. Create a QIIME "map.txt" file with the first column containing the sample names and another column called "FileInput" containing the filenames. This is a tab-delimited file and there must be columns named "BarcodeSequence" and "LinkerPrimerSequence" that are empy. This file can then contain other columns to group samples which will be used when figures are created later.
 
-        #SampleID       BarcodeSequence LinkerPrimerSequence    FileInput       mouse  
-		1.D16M                  1-D16M_S37_L001.assembled.fasta 1       KO      
-		1.D16S                  1-D16S_S92_L001.assembled.fasta 1       WT      
-		3.D16M                  3-D16M_S38_L001.assembled.fasta 3       WT
-
+        create_qiime_map.pl fasta_files/* > map.txt
+		
 5. Combine files into single QIIME "seqs.fna" file
 
         add_qiime_labels.py -i fasta_files/ -m map.txt -c FileInput -o combined_fasta
