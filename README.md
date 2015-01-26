@@ -97,7 +97,7 @@ Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 
         run_pear.pl -p 4 -o stitched_reads raw_miseq_data/* >pear.log
 		
-3. Convert FASTQ stitched files to FASTA
+3. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them. 
 
         run_fastq_to_fasta.pl -p -o fasta_files stitched_reads/*.assembled.*
 
