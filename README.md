@@ -5,46 +5,34 @@ An assortment of scripts to help process and automate various microbiome and met
 
 Including workflows (see below) for analyzing 16S and shotgun metagenomic data. 
 
+Requirements
+------------
+The following programs should be installed with commands accessible from the user's PATH, before trying to run any of the scripts included in this repository.
 
-Brief description of scripts
-----------------------------
+**Both pipelines**
+* FastQC (optional)
+* PEAR: http://sco.h-its.org/exelixis/web/software/pear/doc.html
+ 
+**Metagenomics**
+* Bowtie2: http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
+* Human pre-indexed database: ftp://ftp.ccb.jhu.edu/pub/data/bowtie2_indexes/hg19.zip
+* MetaPhlAn: http://huttenhower.sph.harvard.edu/metaphlan
+* HUMAnN: http://huttenhower.sph.harvard.edu/humann
 
-***Human Contamination***
-        
-* **run_deconseq.pl**: Wraps the deconseq program to filter out human reads from metagenomic data
+**16S**
+* FASTX toolkit: http://hannonlab.cshl.edu/fastx_toolkit/download.html
+* QIIME (v1.9): http://qiime.org
+* SortMeRNA: http://bioinfo.lifl.fr/RNA/sortmerna/
+* SUMACLUST: http://metabarcoding.org/sumatra
+* PICRUSt: http://picrust.github.io/picrust/
 
-* **run_human_filter.pl**: Wraps the Bowtie2 program to filter out human reads from metagenomic data (faster than deconseq) 
-
-***PEAR (Paired-end stitching)***
-
-* **run_pear.pl**: Makes running the PEAR program easier on many samples, by automatically identifying the paired-end files to merge together. 
-
-***STAMP (Statistics and Visualization)***
-
-I find STAMP to be a very useful tool for creating figures and doing statistical analyses. Here are scripts to covert tables from different tools into STAMP input profile files.
-
-* **metaphlan_to_stamp.pl**: This is script that converts a merged metaphlan output file that was created using all taxnomic ranks to a STAMP profile file. 
-
-* **biom_to_stamp.py**: STAMP has built-in BIOM conversion, but depending on where the BIOM file comes from there can be slight format problems with STAMP. Specifically, this script handles PICRUSt BIOM output (both KOs and KEGG Pathways) and QIIME 16S OTU tables (with metadata 'taxonomy').
-
-* **humann_to_stamp.pl**: Converts humann output to stamp format (currently removes extra rows and renames samples ids so they are the same as the orginal file)
-
-***MetaPhlan (Metagenome taxonomic annotation)***
-
-* **run_metaphlan.pl**: Wraps the Metaphlan package and handles running multiple samples at once as well as handling paired end data a bit more cleaner. It also runs each sample in parallel and merges the results into a single output file. Also, easily allows gzipped or non-gzipped files.
-
-***Humann (Metagenome functional annotation)***
-
-* **run_pre_humann.pl**: Does similarity search against kegg database using search tool diamond using multiple threads. This output is then fed into humann. 
-
-***Other assorted scripts***
-
-* **run_fastq_to_fasta.pl**: Wraps the fastq_to_fasta command from the FASTX Toolkit to allow the use of multiple threads.
+**Visualization**
+* STAMP: http://kiwi.cs.dal.ca/Software/STAMP
 
 Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 ---------------------
 
-1. Run fastqc to allow manual inspection of the quality of sequences (optional)
+1. (Optional) Run fastqc to allow manual inspection of the quality of sequences
 
         mkdir fastqc_out
         fastqc -t 4 raw_miseq_data/* -o fastqc_out/
@@ -117,7 +105,7 @@ Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 
 7. Run the entire qiime open reference picking pipeline using 4 threads with the new sortmerna (for reference picking) and sumaclust (for de novo otu picking). This does reference picking first, then subsamples failure sequences, de-novo otu picks failures, ref picks against de novo otus, and de-novo picks again any left over failures. Note: the last de-novo picking step may have to be skipped if there are too many sequences by adding the option `--suppress_step4`. Note: May want to change the subsampling percentage to a higher amount from the default -s 0.001 to -s 0.01 (e.g 1% of the failures) or -s 0.1 (e.g. 10% of the failures)
 
-        pick_open_reference_otus.py -i /home/mlangill/Dropbox/work/projects/andy/combined_fasta/combined_seqs.fna -o $PWD/ucrss_sortmerna_sumaclust/ -p $PWD/ucrss_smr_suma_params.txt -m sortmerna_sumaclust -s 0.1 -v
+        pick_open_reference_otus.py -i $PWD/combined_fasta/combined_seqs.fna -o $PWD/ucrss_sortmerna_sumaclust/ -p $PWD/ucrss_smr_suma_params.txt -m sortmerna_sumaclust -s 0.1 -v
 
 8. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table)
 
@@ -170,6 +158,43 @@ PICRUSt workflow
 6. Convert BIOM to STAMP format
 
         biom_to_stamp.py -m KEGG_Pathways ko_L3.biom > ko_L3.spf
+
+
+Brief description of scripts
+----------------------------
+
+***Human Contamination***
+        
+* **run_deconseq.pl**: Wraps the deconseq program to filter out human reads from metagenomic data
+
+* **run_human_filter.pl**: Wraps the Bowtie2 program to filter out human reads from metagenomic data (faster than deconseq) 
+
+***PEAR (Paired-end stitching)***
+
+* **run_pear.pl**: Makes running the PEAR program easier on many samples, by automatically identifying the paired-end files to merge together. 
+
+***STAMP (Statistics and Visualization)***
+
+I find STAMP to be a very useful tool for creating figures and doing statistical analyses. Here are scripts to covert tables from different tools into STAMP input profile files.
+
+* **metaphlan_to_stamp.pl**: This is script that converts a merged metaphlan output file that was created using all taxnomic ranks to a STAMP profile file. 
+
+* **biom_to_stamp.py**: STAMP has built-in BIOM conversion, but depending on where the BIOM file comes from there can be slight format problems with STAMP. Specifically, this script handles PICRUSt BIOM output (both KOs and KEGG Pathways) and QIIME 16S OTU tables (with metadata 'taxonomy').
+
+* **humann_to_stamp.pl**: Converts humann output to stamp format (currently removes extra rows and renames samples ids so they are the same as the orginal file)
+
+***MetaPhlan (Metagenome taxonomic annotation)***
+
+* **run_metaphlan.pl**: Wraps the Metaphlan package and handles running multiple samples at once as well as handling paired end data a bit more cleaner. It also runs each sample in parallel and merges the results into a single output file. Also, easily allows gzipped or non-gzipped files.
+
+***Humann (Metagenome functional annotation)***
+
+* **run_pre_humann.pl**: Does similarity search against kegg database using search tool diamond using multiple threads. This output is then fed into humann. 
+
+***Other assorted scripts***
+
+* **run_fastq_to_fasta.pl**: Wraps the fastq_to_fasta command from the FASTX Toolkit to allow the use of multiple threads.
+
 
 Contact
 -------
