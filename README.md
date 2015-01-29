@@ -10,7 +10,7 @@ Requirements
 The following programs should be installed with commands accessible from the user's PATH, before trying to run any of the scripts included in this repository.
 
 **Both pipelines**
-* FastQC (optional)
+* FastQC (optional): http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
 * PEAR: http://sco.h-its.org/exelixis/web/software/pear/doc.html
  
 **Metagenomics**
@@ -29,13 +29,14 @@ The following programs should be installed with commands accessible from the use
 **Visualization**
 * STAMP: http://kiwi.cs.dal.ca/Software/STAMP
 
+Before getting started
+----------------------
+* These workflows starts with raw paired-end MiSeq data in demultiplexed fastq format.
+* Most of the commands allow parallel threads to be used with the `-p` option. Adjust according to your computer hardware abilities.
+* These workflows can be completed in roughly 24 hours on a single quad-core desktop when starting with 25 million paired end reads.
+
 Metagenomics Workflow
 ---------------------
-
-Note that this workflow starts with raw paired-end MiSeq data in demultiplexed fastq format.
-
-These commands were run on a quad core desktop server and hence the option of using 4 threads is often provided for most commands. This should be altered according to your server abilities. 
-
 
 1. (Optional) Run fastqc to allow manual inspection of the quality of sequences
 
@@ -46,33 +47,29 @@ These commands were run on a quad core desktop server and hence the option of us
 
         run_pear.pl -p 4 -o stitched_reads raw_miseq_data/* >pear.log
 
-3. Filter sequences for human contamination (this is a bit slow and the following bowtie2 method is quicker)
-    
-        run_deconseq.pl -p 4 -o screened_reads ./stitched_reads/*.assembled.*
-
-4. Run bowtie2 to screen out human sequences
+3. Run bowtie2 to screen out human sequences (Note: you can use run_deconseq.pl instead but it is much slower)
     
         run_human_filter.pl -p 4 -o screened_reads/ stitched_reads/*.assembled*
 
-5. Run Metaphlan for taxanomic composition
+4. Run Metaphlan for taxanomic composition
 
         run_metaphlan.pl -p 4 -o metaphlan_taxonomy.txt screened_reads/*
 
-6. Convert from metaphlan to stamp profile file
+5. Convert from metaphlan to stamp profile file
 
         metaphlan2stamp.pl metaphlan_taxonomy.txt > metaphlan_taxonomy.spf
 
-7. Run pre-humann (diamond search)
+6. Run pre-humann (diamond search)
 
         run_pre_humann.pl -p 4 -o pre_humann/ screened_reads/*
 
-8. Run humann (link files to humann "input" directory and then run humann with scons command)
+7. Run humann (link files to humann "input" directory and then run humann with scons command). Note that you can run this in parallel with `-j` option (e.g. scons -j 4), but I have found this often causes humann to unexpectedly error.
 
         ln -s $PWD/pre_humann/* ~/programs/humann-0.99/input/
         cd ~/programs/human-0.99/
-        scons -j 4
+        scons
 
-9. Convert humann output to stamp format
+8. Convert humann output to stamp format
 
         humann_to_stamp.py 04b-hit-keg-mpm-cop-nul-nve-nve.txt > hummann_modules.spf
         humann_to_stamp.py 04b-hit-keg-mpt-cop-nul-nve-nve.txt > hummann_pathways.spf
@@ -88,11 +85,11 @@ These commands were run on a quad core desktop server and hence the option of us
         mkdir fastqc_out
         fastqc -t 4 raw_miseq_data/* -o fastqc_out/
 
-2. Stich paired end reads together
+2. Stich paired end reads together (~3 hours)
 
         run_pear.pl -p 4 -o stitched_reads raw_miseq_data/* >pear.log
 		
-3. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them. 
+3. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them. (~20 minutes)
 
         run_fastq_to_fasta.pl -p -o fasta_files stitched_reads/*.assembled.*
 
@@ -100,7 +97,7 @@ These commands were run on a quad core desktop server and hence the option of us
 
         create_qiime_map.pl fasta_files/* > map.txt
 		
-5. Combine files into single QIIME "seqs.fna" file
+5. Combine files into single QIIME "seqs.fna" file (~5 minutes)
 
         add_qiime_labels.py -i fasta_files/ -m map.txt -c FileInput -o combined_fasta
 		
@@ -110,9 +107,9 @@ These commands were run on a quad core desktop server and hence the option of us
         echo "pick_otus:threads 4" >> ucrss_smr_suma_params.txt
 		
 
-7. Run the entire qiime open reference picking pipeline using 4 threads with the new sortmerna (for reference picking) and sumaclust (for de novo otu picking). This does reference picking first, then subsamples failure sequences, de-novo otu picks failures, ref picks against de novo otus, and de-novo picks again any left over failures. Note: the last de-novo picking step may have to be skipped if there are too many sequences by adding the option `--suppress_step4`. Note: May want to change the subsampling percentage to a higher amount from the default -s 0.001 to -s 0.01 (e.g 1% of the failures) or -s 0.1 (e.g. 10% of the failures)
+7. Run the entire qiime open reference picking pipeline with the new sortmerna (for reference picking) and sumaclust (for de novo otu picking). This does reference picking first, then subsamples failure sequences, de-novo otu picks failures, ref picks against de novo otus, and de-novo picks again any left over failures. Note: the last de-novo picking step may have to be skipped if there are too many sequences by adding the option `--suppress_step4`. Note: You may want to change the subsampling percentage to a higher amount from the default -s 0.001 to -s 0.01 (e.g 1% of the failures) or -s 0.1 (e.g. 10% of the failures) (~24 hours)
 
-        pick_open_reference_otus.py -i $PWD/combined_fasta/combined_seqs.fna -o $PWD/ucrss_sortmerna_sumaclust/ -p $PWD/ucrss_smr_suma_params.txt -m sortmerna_sumaclust -s 0.1 -v
+        pick_open_reference_otus.py -i $PWD/combined_fasta/combined_seqs.fna -o $PWD/ucrss_sortmerna_sumaclust/ -p $PWD/ucrss_smr_suma_params.txt -m sortmerna_sumaclust -s 0.1 --suppress_step4 -v
 
 8. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table)
 
