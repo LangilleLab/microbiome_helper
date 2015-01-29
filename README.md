@@ -29,8 +29,13 @@ The following programs should be installed with commands accessible from the use
 **Visualization**
 * STAMP: http://kiwi.cs.dal.ca/Software/STAMP
 
-Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
+Metagenomics Workflow
 ---------------------
+
+Note that this workflow starts with raw paired-end MiSeq data in demultiplexed fastq format.
+
+These commands were run on a quad core desktop server and hence the option of using 4 threads is often provided for most commands. This should be altered according to your server abilities. 
+
 
 1. (Optional) Run fastqc to allow manual inspection of the quality of sequences
 
@@ -61,7 +66,7 @@ Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 
         run_pre_humann.pl -p 4 -o pre_humann/ screened_reads/*
 
-8. Run humann (link files to humann "input" directory and then run humann with 4 threads)
+8. Run humann (link files to humann "input" directory and then run humann with scons command)
 
         ln -s $PWD/pre_humann/* ~/programs/humann-0.99/input/
         cd ~/programs/human-0.99/
@@ -71,10 +76,12 @@ Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
 
         humann_to_stamp.py 04b-hit-keg-mpm-cop-nul-nve-nve.txt > hummann_modules.spf
         humann_to_stamp.py 04b-hit-keg-mpt-cop-nul-nve-nve.txt > hummann_pathways.spf
-		humann_to_stamp.py 01b-hit-keg-cat.txt > hummann_kos.spf
+        humann_to_stamp.py 01b-hit-keg-cat.txt > hummann_kos.spf
 
-16S Workflow (starting with demultiplex MiSeq fastq files)
+16S Workflow
 ------------
+
+*Note that this workflow starts with raw paired-end MiSeq data in demultiplexed fastq format.*
 
 1. Run fastqc to allow manual inspection of the quality of sequences (optional)
 
@@ -132,7 +139,7 @@ Metagenomics Workflow (starting with demultiplexed MiSeq fastq files)
         mv tmp.spf otu_table.spf
 
 
-PICRUSt workflow
+PICRUSt workflow (for 16S data)
 ----------------
 
 1. First reduce OTU table to just the reference OTUs
