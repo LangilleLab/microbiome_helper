@@ -16,7 +16,7 @@ The following programs should be installed with commands accessible from the use
 **Metagenomics**
 * Bowtie2: http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
 * Human pre-indexed database: ftp://ftp.ccb.jhu.edu/pub/data/bowtie2_indexes/hg19.zip
-* MetaPhlAn: http://huttenhower.sph.harvard.edu/metaphlan
+* MetaPhlAn2: https://bitbucket.org/biobakery/metaphlan2
 * HUMAnN: http://huttenhower.sph.harvard.edu/humann
 
 **16S**
@@ -53,7 +53,7 @@ Metagenomics Workflow
 
 4. Run Metaphlan for taxanomic composition
 
-        run_metaphlan.pl -p 4 -o metaphlan_taxonomy.txt screened_reads/*
+        run_metaphlan2.pl -p 4 -o metaphlan_taxonomy.txt screened_reads/*
 
 5. Convert from metaphlan to stamp profile file
 
