@@ -10,7 +10,7 @@ Requirements
 The following programs should be installed with commands accessible from the user's PATH, before trying to run any of the scripts included in this repository.
 
 **Both pipelines**
-* FastQC (optional): http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+* FastQC (v0.11.2) (optional): http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
 * PEAR: http://sco.h-its.org/exelixis/web/software/pear/doc.html
  
 **Metagenomics**
@@ -20,7 +20,7 @@ The following programs should be installed with commands accessible from the use
 * HUMAnN: http://huttenhower.sph.harvard.edu/humann
 
 **16S**
-* FASTX toolkit: http://hannonlab.cshl.edu/fastx_toolkit/download.html
+* FASTX toolkit (v0.0.14): http://hannonlab.cshl.edu/fastx_toolkit/download.html
 * QIIME (v1.9): http://qiime.org
 * SortMeRNA: http://bioinfo.lifl.fr/RNA/sortmerna/
 * SUMACLUST: http://metabarcoding.org/sumatra
