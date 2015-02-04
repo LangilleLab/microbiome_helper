@@ -9,8 +9,11 @@ use Parallel::ForkManager;
 
 my ($parallel,$help);
 my $out_dir='./';
+my $kegg_db="/home/shared/kegg/kegg.reduced";
+
 my $res = GetOptions("out_dir=s" => \$out_dir,
 		     "parallel:i"=>\$parallel,
+		     "kegg_db=s" =>\$kegg_db,
 		     "help"=>\$help,
     )or pod2usage(2);
 
@@ -42,7 +45,7 @@ foreach my $file (@files){
 
     my $out_file=$out_dir.'/'.$file_name.".txt";
    
-    my $cmd="diamond blastx -p $cpu_count -d ~/Dropbox/work/programs/kegg/kegg.reduced -q $file -o $out_file -t /tmp/";
+    my $cmd="diamond blastx -p $cpu_count -d $kegg_db -q $file -o $out_file -t /tmp/";
     print $cmd,"\n";
     system($cmd);
 }
