@@ -38,11 +38,17 @@ if(defined($parallel)){
 
 my %paired_files;
 foreach my $file (@files){
-    my ($file_name,$dir)=fileparse($file, qr/\.[^.]*/);
+    my ($file_name,$dir,$suffix)=fileparse($file, qr/\.[^.]*/);
 
-    my $out_file=$out_dir.'/'.$file_name."_screened.fastq";
-    #Can add --local option to make this more sensitive
-    my $cmd="bowtie2 -x /home/shared/bowtiedb/hg19 -p $cpu_count -U $file --un $out_file >/dev/null";
+    my $out_file=$out_dir.'/'.$file_name."_screened".$suffix;
+
+    my $cmd;
+    if($suffix eq '.fastq'){
+	#Can add --local option to make this more sensitive
+	$cmd="bowtie2 -x /home/shared/bowtiedb/hg19 -p $cpu_count -U $file --un $out_file >/dev/null";
+    }else{
+	$cmd="bowtie2 -x /home/shared/bowtiedb/hg19 -p $cpu_count -f $file --un $out_file >/dev/null";
+    }
     print $cmd,"\n";
     system($cmd);
 }
