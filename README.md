@@ -111,30 +111,62 @@ Metagenomics Workflow
 
         pick_open_reference_otus.py -i $PWD/combined_fasta/combined_seqs.fna -o $PWD/ucrss_sortmerna_sumaclust/ -p $PWD/ucrss_smr_suma_params.txt -m sortmerna_sumaclust -s 0.1 --suppress_step4 -v
 
-8. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table)
+8. Move and rename the OTU table
+
+        mkdir final_otu_tables
+        mv  ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom final_otu_tables/otu_table.biom
+
+9. Summarize OTU table to determine number of sequences per sample
+
+        biom summarize-table -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_summary.txt
+
+10. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table)
 
         single_rarefaction.py -i ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom -o final_otu_tables/otu_table.biom -d 35566
 
-
-9. Create unifrac beta diversity plots
+11. Create unifrac beta diversity plots
 
         beta_diversity_through_plots.py -m map.txt -t ucrss_sortmerna_sumaclust/rep_set.tre -i final_otu_tables/otu_table.biom -o plots/bdiv_otu
 
-10. Create alpha diversity rarefaction plot
+12. Create alpha diversity rarefaction plot (values min and max rare depth as well as number of steps should be based on the number of sequences withoin your OTU table)
 
         alpha_rarefaction.py -i final_otu_tables/otu_table.biom -o plots/alpha_rarefaction_plot -t ucrss_sortmerna_sumaclust/rep_set.tre -m map.txt --min_rare_depth 1000 --max_rare_depth 35000 --num_steps 35
 
-11. Convert BIOM otu table to STAMP
+13. Convert BIOM otu table to STAMP
 
         biom convert -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_json.biom --to-json --table-type "OTU table"
         
         #Note: must not be in virtualenv during this next command since it uses biom 1.3.1
         biom_to_stamp.py -m taxonomy final_otu_tables/otu_table_json.biom >final_otu_tables/otu_table.spf
 
-        #Note: there is are a few OTUs where the genus Clostridium is within the wrong family. Filter these out here.
+        #Note: there is are a few OTUs where the genus Clostridium is within the wrong family. Filter these out here manually.
         grep -P -v "f__Erysipelotrichaceae\tg__Cl" otu_table.spf > tmp.spf
         mv tmp.spf otu_table.spf
 
+Additional QIIME analysis
+-------------------------
+
+*Once you have created an OTU table using the above pipeline, there are several statistcal tests and visualization methods available within QIIME.*
+
+1. Get statistical signfance of category groupings (be sure to read the help for this command to properly interpret the results). (Be sure to change the `-c` option to your particular field within your map.txt file).
+
+        compare_categories.py -i final_otu_tables/otu_table.biom --method adonis -i plots/bdiv_otu/weighted_unifrac_dm.txt -m map.txt -c mouse_type -o adonis_ko_vs_wt
+        compare_categories.py -i final_otu_tables/otu_table.biom --method anosim -i plots/bdiv_otu/weighted_unifrac_dm.txt -m map.txt -c mouse_type -o anosim_ko_vs_wt
+
+2. Compare within vs between b-diversity 
+
+        make_distance_boxplots.py -m map.txt -d plots/bdiv_otu/weighted_unifrac_dm.txt -f mouse_type -o plots/bdiv_box_plots
+
+3. Make stacked bar charts 
+
+        summarize_taxa_through_plots.py -i final_otu_tables/otu_table.biom -o plots/taxa_summary
+		
+		#Note: you can also collapse samples by a category
+        summarize_taxa_through_plots.py -i final_otu_tables/otu_table.biom -o plots/taxa_summary -m map.txt -c mouse_type
+		
+4. Compute MD dysbiosis index for IBD
+
+        compute_taxonomy_ratios.py -i final_otu_tables/otu_table.biom -e md -o map_with_md.txt -m map.txt
 
 PICRUSt workflow (for 16S data)
 ----------------
