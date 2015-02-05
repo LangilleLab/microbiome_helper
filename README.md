@@ -111,28 +111,23 @@ Metagenomics Workflow
 
         pick_open_reference_otus.py -i $PWD/combined_fasta/combined_seqs.fna -o $PWD/ucrss_sortmerna_sumaclust/ -p $PWD/ucrss_smr_suma_params.txt -m sortmerna_sumaclust -s 0.1 --suppress_step4 -v
 
-8. Move and rename the OTU table
+8. Summarize OTU table to determine number of sequences per sample
 
-        mkdir final_otu_tables
-        mv  ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom final_otu_tables/otu_table.biom
+        biom summarize-table -i ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom -o ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures_summary.txt
 
-9. Summarize OTU table to determine number of sequences per sample
-
-        biom summarize-table -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_summary.txt
-
-10. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table)
+9. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table)
 
         single_rarefaction.py -i ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom -o final_otu_tables/otu_table.biom -d 35566
 
-11. Create unifrac beta diversity plots
+10. Create unifrac beta diversity plots
 
         beta_diversity_through_plots.py -m map.txt -t ucrss_sortmerna_sumaclust/rep_set.tre -i final_otu_tables/otu_table.biom -o plots/bdiv_otu
 
-12. Create alpha diversity rarefaction plot (values min and max rare depth as well as number of steps should be based on the number of sequences withoin your OTU table)
+11. Create alpha diversity rarefaction plot (values min and max rare depth as well as number of steps should be based on the number of sequences withoin your OTU table)
 
         alpha_rarefaction.py -i final_otu_tables/otu_table.biom -o plots/alpha_rarefaction_plot -t ucrss_sortmerna_sumaclust/rep_set.tre -m map.txt --min_rare_depth 1000 --max_rare_depth 35000 --num_steps 35
 
-13. Convert BIOM otu table to STAMP
+12. Convert BIOM otu table to STAMP
 
         biom convert -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_json.biom --to-json --table-type "OTU table"
         
