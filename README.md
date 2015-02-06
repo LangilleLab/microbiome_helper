@@ -138,7 +138,7 @@ Metagenomics Workflow
 Additional QIIME analysis
 -------------------------
 
-*Once you have created an OTU table using the above pipeline, there are several statistcal tests and visualization methods available within QIIME.*
+*Once you have created an OTU table using the above pipeline, there are several statistcal tests and visualization methods available within QIIME. Not all of these are useful for all data types or projects. This list is meant more as a catalog of what is possible.*
 
 1. Get statistical signfance of category groupings (be sure to read the help for this command to properly interpret the results). (Be sure to change the `-c` option to your particular field within your map.txt file).
 
@@ -159,6 +159,13 @@ Additional QIIME analysis
 4. Compute MD dysbiosis index for IBD
 
         compute_taxonomy_ratios.py -i final_otu_tables/otu_table.biom -e md -o map_with_md.txt -m map.txt
+
+5. Build and evaluate a classifier using Random Forests (this should only be done for large datasets)
+
+        supervised_learning.py -i otu_table.biom -m map.txt -c mouse_type -o ml -v
+		
+		#Can also do 5-fold cross validation
+		supervised_learning.py -i otu_table.biom -m map.txt -c mouse_type -o ml -v -e cv5
 
 PICRUSt workflow (for 16S data)
 ----------------
