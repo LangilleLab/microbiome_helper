@@ -128,13 +128,10 @@ Metagenomics Workflow
         alpha_rarefaction.py -i final_otu_tables/otu_table.biom -o plots/alpha_rarefaction_plot -t ucrss_sortmerna_sumaclust/rep_set.tre -m map.txt --min_rare_depth 1000 --max_rare_depth 35000 --num_steps 35
 
 12. Convert BIOM otu table to STAMP
-
-        biom convert -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_json.biom --to-json --table-type "OTU table"
         
-        #Note: must not be in virtualenv during this next command since it uses biom 1.3.1
-        biom_to_stamp.py -m taxonomy final_otu_tables/otu_table_json.biom >final_otu_tables/otu_table.spf
+        biom_to_stamp.py -m taxonomy final_otu_tables/otu_table.biom >final_otu_tables/otu_table.spf
 
-        #Note: there is are a few OTUs where the genus Clostridium is within the wrong family. Filter these out here manually.
+        #Note: there are a few OTUs where the genus Clostridium is within the wrong family. Filter these out here manually.
         grep -P -v "f__Erysipelotrichaceae\tg__Cl" otu_table.spf > tmp.spf
         mv tmp.spf otu_table.spf
 
@@ -170,19 +167,19 @@ PICRUSt workflow (for 16S data)
 
         filter_otus_from_otu_table.py -i final_otu_tables/otu_table.biom -o final_otu_tables/closed_otus.biom --negate_ids_to_exclude -e ~/.virtualenvs/qiime1.9/lib/python2.7/site-packages/qiime_default_reference/gg_13_8_otus/rep_set/97_otus.fasta
 
-2. Convert from hdf5 to json
+2. Convert from BIOM encoding from hdf5 to json
 
         biom convert -i final_otu_tables/closed_otus.biom -o final_otu_tables/closed_otus_json.biom --to-json --table-type "OTU table"
 
-3. PICRUSt normalize OTU table by predicted 16S copy numbers (must change to python evironment with biom 1.3.1)
+3. PICRUSt: normalize OTU table by predicted 16S copy numbers. NOTE: PICRUSt has not been updated yet for BIOM 2.1. Therefore you must change to a python environment with biom 1.3.1 for the next 3 commands)
 
         normalize_by_copy_number.py -i final_otu_tables/closed_otus_json.biom -o final_otu_tables/closed_otus_norm.biom
 
-4. PICRUSt predict KOs .... this is magical :)
+4. PICRUSt: Predict KOs .... this is magical :)
 
         predict_metagenomes.py -i final_otu_tables/closed_otus_norm.biom -o final_otu_tables/ko.biom
 
-5. Collapse KOs into KEGG Pathways
+5. PICRUSt: Collapse KOs into KEGG Pathways
 
         categorize_by_function.py -i ko.biom -l 3 -c KEGG_Pathways -o ko_L3.biom
 

@@ -11,9 +11,9 @@ __status__ = "Development"
 
 
 from cogent.util.option_parsing import parse_command_line_parameters, make_option
-from biom.parse import parse_biom_table
-from os.path import join,splitext
-import gzip
+#Requires BIOM v2.1
+from biom import load_table
+from os.path import join
 import sys
 import re
 
@@ -62,10 +62,6 @@ def process_metadata(metadata,metadata_name,obs_id):
     else:
         return metadata
 
-    
-
-    
-
 def main():
     option_parser, opts, args =\
                    parse_command_line_parameters(**script_info)
@@ -75,23 +71,20 @@ def main():
        option_parser.error('A BIOM file must be provided.')
 
     file_name = args[0]
-
-    #allow file to be optionally gzipped (must use extension '.gz')
-    ext=splitext(file_name)[1]
-    if (ext == '.gz'):
-        table = parse_biom_table(gzip.open(file_name,'rb'))
-    else:
-        table = parse_biom_table(open(file_name,'U'))
+    table = load_table(file_name)
 
     metadata_name=opts.metadata
 
+    #create the list of observation ids
+    obs_ids=table.ids('observation')
+
+    #Determine how many hierarchy levels the metadata contains
     if metadata_name is None:
         max_len_metadata=0
     elif metadata_name == 'KEGG_Description':
         max_len_metadata=1
-    elif table.ObservationMetadata and metadata_name in table.ObservationMetadata[0]:
-       
-        max_len_metadata = max(len(p[metadata_name]) for p in table.ObservationMetadata)
+    elif table.metadata(obs_ids[0],axis='observation') and metadata_name in table.metadata(obs_ids[0],axis='observation'):
+        max_len_metadata = max(len(table.metadata(p,axis='observation')[metadata_name]) for p in obs_ids)
     else:
         raise ValueError("'"+metadata_name+"' was not found in the BIOM table. Please try changing --metadata to a valid metadata field.")
 
@@ -111,12 +104,12 @@ def main():
         header.append('Level_'+ str(i+1))
     
     #add the sample ids to the header line
-    header.extend(table.SampleIds)
+    header.extend(table.ids())
     
     print "\t".join(header)
 
     #now process each observation (row in the table)
-    for obs_vals,obs_id,obs_metadata in table.iterObservations():
+    for obs_vals,obs_id,obs_metadata in table.iter(axis='observation'):
         row=[]
         if max_len_metadata >0:
             row=process_metadata(obs_metadata[metadata_name],metadata_name,obs_id)
