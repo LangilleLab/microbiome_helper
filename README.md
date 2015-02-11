@@ -57,7 +57,7 @@ Metagenomics Workflow
 
 5. Convert from metaphlan to stamp profile file
 
-        metaphlan2stamp.pl metaphlan_taxonomy.txt > metaphlan_taxonomy.spf
+        metaphlan_to_stamp.pl metaphlan_taxonomy.txt > metaphlan_taxonomy.spf
 
 6. Run pre-humann (diamond search)
 
@@ -66,14 +66,14 @@ Metagenomics Workflow
 7. Run humann (link files to humann "input" directory and then run humann with scons command). Note that you can run this in parallel with `-j` option (e.g. scons -j 4), but I have found this often causes humann to unexpectedly error.
 
         ln -s $PWD/pre_humann/* ~/programs/humann-0.99/input/
-        cd ~/programs/human-0.99/
+        cd ~/programs/humann-0.99/
         scons
 
 8. Convert humann output to stamp format
 
-        humann_to_stamp.py 04b-hit-keg-mpm-cop-nul-nve-nve.txt > hummann_modules.spf
-        humann_to_stamp.py 04b-hit-keg-mpt-cop-nul-nve-nve.txt > hummann_pathways.spf
-        humann_to_stamp.py 01b-hit-keg-cat.txt > hummann_kos.spf
+        humann_to_stamp.pl 04b-hit-keg-mpm-cop-nul-nve-nve.txt > hummann_modules.spf
+        humann_to_stamp.pl 04b-hit-keg-mpt-cop-nul-nve-nve.txt > hummann_pathways.spf
+        humann_to_stamp.pl 01b-hit-keg-cat.txt > hummann_kos.spf
 
 16S Workflow
 ------------
