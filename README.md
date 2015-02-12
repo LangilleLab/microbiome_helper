@@ -101,9 +101,8 @@ Metagenomics Workflow
 
         add_qiime_labels.py -i fasta_files/ -m map.txt -c FileInput -o combined_fasta
 		
-6. Create OTU picking parameter file. (Note: this is optional)
+6. Create OTU picking parameter file to indicate number of threads to use.
 
-        echo "pick_otus:sortmerna_db /home/shared/sortmerna/97_otus" >> ucrss_smr_suma_params.txt
         echo "pick_otus:threads 4" >> ucrss_smr_suma_params.txt
 		
 
