@@ -47,29 +47,33 @@ Metagenomics Workflow
 
         run_pear.pl -p 4 -o stitched_reads raw_miseq_data/* >pear.log
 
-3. Run bowtie2 to screen out human sequences (Note: you can use run_deconseq.pl instead but it is much slower)
+3. Summarize and manually inspect how successful the stitching was per sample (e.g. % assembled, %discarded, %unassembled)
+
+        pear_summarize.pl pear.log | sort
+
+4. Run bowtie2 to screen out human sequences (Note: you can use run_deconseq.pl instead but it is much slower)
     
         run_human_filter.pl -p 4 -o screened_reads/ stitched_reads/*.assembled*
 
-4. Run Metaphlan for taxanomic composition
+5. Run Metaphlan for taxanomic composition
 
         run_metaphlan2.pl -p 4 -o metaphlan_taxonomy.txt screened_reads/*
 
-5. Convert from metaphlan to stamp profile file
+6. Convert from metaphlan to stamp profile file
 
         metaphlan_to_stamp.pl metaphlan_taxonomy.txt > metaphlan_taxonomy.spf
 
-6. Run pre-humann (diamond search)
+7. Run pre-humann (diamond search)
 
         run_pre_humann.pl -p 4 -o pre_humann/ screened_reads/*
 
-7. Run humann (link files to humann "input" directory and then run humann with scons command). Note that you can run this in parallel with `-j` option (e.g. scons -j 4), but I have found this often causes humann to unexpectedly error.
+8. Run humann (link files to humann "input" directory and then run humann with scons command). Note that you can run this in parallel with `-j` option (e.g. scons -j 4), but I have found this often causes humann to unexpectedly error.
 
         ln -s $PWD/pre_humann/* ~/programs/humann-0.99/input/
         cd ~/programs/humann-0.99/
         scons
 
-8. Convert humann output to stamp format
+9. Convert humann output to stamp format
 
         humann_to_stamp.pl 04b-hit-keg-mpm-cop-nul-nve-nve.txt > hummann_modules.spf
         humann_to_stamp.pl 04b-hit-keg-mpt-cop-nul-nve-nve.txt > hummann_pathways.spf
@@ -88,45 +92,49 @@ Metagenomics Workflow
 2. Stich paired end reads together (~3 hours)
 
         run_pear.pl -p 4 -o stitched_reads raw_miseq_data/* >pear.log
+
+3. Summarize and manually inspect how successful the stitching was per sample (e.g. % assembled, %discarded, %unassembled)
+
+        pear_summarize.pl pear.log | sort
 		
-3. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them. (~20 minutes)
+4. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them. (~20 minutes)
 
         run_fastq_to_fasta.pl -p -o fasta_files stitched_reads/*.assembled.*
 
-4. Create a QIIME "map.txt" file with the first column containing the sample names and another column called "FileInput" containing the filenames. This is a tab-delimited file and there must be columns named "BarcodeSequence" and "LinkerPrimerSequence" that are empy. This file can then contain other columns to group samples which will be used when figures are created later.
+5. Create a QIIME "map.txt" file with the first column containing the sample names and another column called "FileInput" containing the filenames. This is a tab-delimited file and there must be columns named "BarcodeSequence" and "LinkerPrimerSequence" that are empy. This file can then contain other columns to group samples which will be used when figures are created later.
 
         create_qiime_map.pl fasta_files/* > map.txt
 		
-5. Combine files into single QIIME "seqs.fna" file (~5 minutes)
+6. Combine files into single QIIME "seqs.fna" file (~5 minutes)
 
         add_qiime_labels.py -i fasta_files/ -m map.txt -c FileInput -o combined_fasta
 		
-6. Create OTU picking parameter file to indicate number of threads to use.
+7. Create OTU picking parameter file to indicate number of threads to use.
 
         echo "pick_otus:threads 4" >> ucrss_smr_suma_params.txt
 		
 
-7. Run the entire qiime open reference picking pipeline with the new sortmerna (for reference picking) and sumaclust (for de novo otu picking). This does reference picking first, then subsamples failure sequences, de-novo otu picks failures, ref picks against de novo otus, and de-novo picks again any left over failures. Note: the last de-novo picking step may have to be skipped if there are too many sequences by adding the option `--suppress_step4`. Note: You may want to change the subsampling percentage to a higher amount from the default -s 0.001 to -s 0.01 (e.g 1% of the failures) or -s 0.1 (e.g. 10% of the failures) (~24 hours)
+8. Run the entire qiime open reference picking pipeline with the new sortmerna (for reference picking) and sumaclust (for de novo otu picking). This does reference picking first, then subsamples failure sequences, de-novo otu picks failures, ref picks against de novo otus, and de-novo picks again any left over failures. Note: the last de-novo picking step may have to be skipped if there are too many sequences by adding the option `--suppress_step4`. Note: You may want to change the subsampling percentage to a higher amount from the default -s 0.001 to -s 0.01 (e.g 1% of the failures) or -s 0.1 (e.g. 10% of the failures) (~24 hours)
 
         pick_open_reference_otus.py -i $PWD/combined_fasta/combined_seqs.fna -o $PWD/ucrss_sortmerna_sumaclust/ -p $PWD/ucrss_smr_suma_params.txt -m sortmerna_sumaclust -s 0.1 --suppress_step4 -v
 
-8. Summarize OTU table to determine number of sequences per sample
+9. Summarize OTU table to determine number of sequences per sample
 
         biom summarize-table -i ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom -o ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures_summary.txt
 
-9. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table). Note: Don't like the idea of throwing away all that data? You may want to consider trying different normalization methods such as DESeq2 (see below).
+10. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table). Note: Don't like the idea of throwing away all that data? You may want to consider trying different normalization methods such as DESeq2 (see below).
 
         single_rarefaction.py -i ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom -o final_otu_tables/otu_table.biom -d 35566
 
-10. Create unifrac beta diversity plots
+11. Create unifrac beta diversity plots
 
         beta_diversity_through_plots.py -m map.txt -t ucrss_sortmerna_sumaclust/rep_set.tre -i final_otu_tables/otu_table.biom -o plots/bdiv_otu
 
-11. Create alpha diversity rarefaction plot (values min and max rare depth as well as number of steps should be based on the number of sequences withoin your OTU table)
+12. Create alpha diversity rarefaction plot (values min and max rare depth as well as number of steps should be based on the number of sequences withoin your OTU table)
 
         alpha_rarefaction.py -i final_otu_tables/otu_table.biom -o plots/alpha_rarefaction_plot -t ucrss_sortmerna_sumaclust/rep_set.tre -m map.txt --min_rare_depth 1000 --max_rare_depth 35000 --num_steps 35
 
-12. Convert BIOM otu table to STAMP
+13. Convert BIOM otu table to STAMP
         
         biom_to_stamp.py -m taxonomy final_otu_tables/otu_table.biom >final_otu_tables/otu_table.spf
 
@@ -210,6 +218,8 @@ Brief description of scripts
 ***PEAR (Paired-end stitching)***
 
 * **run_pear.pl**: Makes running the PEAR program easier on many samples, by automatically identifying the paired-end files to merge together. 
+
+* **pear_summarize.pl**: Summarizes how successful the stiching was per sample.
 
 ***STAMP (Statistics and Visualization)***
 
