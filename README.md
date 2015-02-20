@@ -124,6 +124,7 @@ Metagenomics Workflow
 
 10. Normalize OTU table to same sample depth (e.g. in this case 35566 sequences, but this value will depend on your OTU table). Note: Don't like the idea of throwing away all that data? You may want to consider trying different normalization methods such as DESeq2 (see below).
 
+        mkdir final_otu_tables
         single_rarefaction.py -i ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom -o final_otu_tables/otu_table.biom -d 35566
 
 11. Create unifrac beta diversity plots
@@ -141,6 +142,11 @@ Metagenomics Workflow
         #Note: there are a few OTUs where the genus Clostridium is within the wrong family. Filter these out here manually.
         grep -P -v "f__Erysipelotrichaceae\tg__Cl" otu_table.spf > tmp.spf
         mv tmp.spf otu_table.spf
+
+14. Add sample metadata to BIOM file so that it can be used by other tools like phinch.org and phyloseq
+
+        biom add-metadata -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_with_metadata.biom -m map.txt
+
 
 Additional QIIME analysis
 -------------------------
