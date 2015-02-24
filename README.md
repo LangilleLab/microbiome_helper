@@ -49,7 +49,7 @@ Metagenomics Workflow
 
 3. Summarize and manually inspect how successful the stitching was per sample (e.g. % assembled, %discarded, %unassembled)
 
-        pear_summarize.pl pear.log | sort
+        pear_summarize.pl pear.log | less
 
 4. Run bowtie2 to screen out human sequences (Note: you can use run_deconseq.pl instead but it is much slower)
     
@@ -95,7 +95,7 @@ Metagenomics Workflow
 
 3. Summarize and manually inspect how successful the stitching was per sample (e.g. % assembled, %discarded, %unassembled)
 
-        pear_summarize.pl pear.log | sort
+        pear_summarize.pl pear.log | less
 		
 4. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them. (~20 minutes)
 
