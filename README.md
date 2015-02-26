@@ -127,15 +127,17 @@ Metagenomics Workflow
         mkdir final_otu_tables
         single_rarefaction.py -i ucrss_sortmerna_sumaclust/otu_table_mc2_w_tax_no_pynast_failures.biom -o final_otu_tables/otu_table.biom -d 35566
 
-11. Create unifrac beta diversity plots
+11. Manually add column(s) to map.txt that contain information to group your samples (e.g. healthy vs disease)
+
+12. Create unifrac beta diversity plots
 
         beta_diversity_through_plots.py -m map.txt -t ucrss_sortmerna_sumaclust/rep_set.tre -i final_otu_tables/otu_table.biom -o plots/bdiv_otu
 
-12. Create alpha diversity rarefaction plot (values min and max rare depth as well as number of steps should be based on the number of sequences withoin your OTU table)
+13. Create alpha diversity rarefaction plot (values min and max rare depth as well as number of steps should be based on the number of sequences withoin your OTU table)
 
         alpha_rarefaction.py -i final_otu_tables/otu_table.biom -o plots/alpha_rarefaction_plot -t ucrss_sortmerna_sumaclust/rep_set.tre -m map.txt --min_rare_depth 1000 --max_rare_depth 35000 --num_steps 35
 
-13. Convert BIOM otu table to STAMP
+14. Convert BIOM otu table to STAMP
         
         biom_to_stamp.py -m taxonomy final_otu_tables/otu_table.biom >final_otu_tables/otu_table.spf
 
@@ -143,7 +145,7 @@ Metagenomics Workflow
         grep -P -v "f__Erysipelotrichaceae\tg__Cl" otu_table.spf > tmp.spf
         mv tmp.spf otu_table.spf
 
-14. Add sample metadata to BIOM file so that it can be used by other tools like phinch.org and phyloseq
+15. Add sample metadata to BIOM file so that it can be used by other tools like phinch.org and phyloseq
 
         biom add-metadata -i final_otu_tables/otu_table.biom -o final_otu_tables/otu_table_with_metadata.biom -m map.txt
 
