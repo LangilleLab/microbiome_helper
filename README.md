@@ -4,6 +4,20 @@ Microbiome Helper
 An assortment of scripts to help process and automate various microbiome and metagenomic bioinformatic tools.
 
 Including workflows (see below) for analyzing 16S and shotgun metagenomic data. 
+Table of Contents
+=================
+
+  * [Microbiome Helper](#microbiome-helper)
+  * [Table of Contents](#table-of-contents)
+    * [Requirements](#requirements)
+    * [Before getting started](#before-getting-started)
+    * [Metagenomics Workflow](#metagenomics-workflow)
+    * [16S Workflow](#16s-workflow)
+    * [Additional QIIME analysis](#additional-qiime-analysis)
+    * [PICRUSt workflow (for 16S data)](#picrust-workflow-for-16s-data)
+    * [Brief description of scripts](#brief-description-of-scripts)
+    * [Contact](#contact)
+
 
 Requirements
 ------------
@@ -246,4 +260,5 @@ Contact
 -------
 
 Questions or comments about this repository can be sent to morgan.g.i.langille@dal.ca
+
 
