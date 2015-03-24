@@ -13,13 +13,13 @@ my ($parallel,$help);
 my $out_dir='./';
 my $full_log='pear_full_log.txt';
 my $summary_log='pear_summary_log.txt';
-my $gzip_output_off;
+my $gzip_output;
 
 my $res = GetOptions("out_dir=s" => \$out_dir,
 		     "parallel:i"=>\$parallel,
 		     "full_log=s"=>\$full_log,
 		     "summary_log=s"=>\$summary_log,
-		     "gzip_output_off"=>\$gzip_output_off,
+		     "gzip_output"=>\$gzip_output,
 		     "help"=>\$help,
     )or pod2usage(2);
 
@@ -64,20 +64,24 @@ foreach my $file (@files){
 #close($FULL_LOG);
 
 
-foreach my $name (keys %paired_files){
+foreach my $name (sort keys %paired_files){
     unless(defined($paired_files{$name}[0]) && defined($paired_files{$name}[1])){
 	warn "Couldn't find matching paired end files for file starting with: $name";
 	next;
     }
     my $out_file=$out_dir.'/'.$name;
     #check if this has already been done
-    next if (-e $out_file.'.assembled.fastq.gz');
+    my $assembled_out_file=$out_file.'.assembled.fastq';
+    if (-e $assembled_out_file || -e $assembled_out_file.'.gz'){
+	print "Skipping this sample because output file already exists: $assembled_out_file\n";
+	next;
+    }
     my $cmd="pear -f $paired_files{$name}[0] -r $paired_files{$name}[1] -j $cpu_count -o $out_file >>$full_log";
     print $cmd,"\n";
     die if system($cmd);
 
-    #compress output files (unless the flag is set)
-    unless($gzip_output_off){
+    #compress output files (if the flag is set)
+    if($gzip_output){
 	my $gzip_cmd="pigz -p $cpu_count -f $out_file".'*';
 	print $gzip_cmd,"\n";
 	die if system($gzip_cmd);
@@ -121,20 +125,16 @@ sub create_summary_log{
 	}
     }
 
-
-
-    #sort in percent assembled in assending order
-    my @sorted_samples = sort {$a->[1] <=> $b->[1]} @samples;
-
-    unshift @sorted_samples,['Max',sprintf("%.3f",max(map{$_->[1]}@samples)),sprintf("%.3f",max(map{$_->[2]}@samples)),sprintf("%.3f",max(map{$_->[3]}@samples))];
-    unshift @sorted_samples,['Mean',sprintf("%.3f",mean(map{$_->[1]}@samples)),sprintf("%.3f",mean(map{$_->[2]}@samples)),sprintf("%.3f",mean(map{$_->[3]}@samples))];
-    unshift @sorted_samples,['Min',sprintf("%.3f",min(map{$_->[1]}@samples)),sprintf("%.3f",min(map{$_->[2]}@samples)),sprintf("%.3f",min(map{$_->[3]}@samples))];
+    #Add min, mean, and max as first three lines of output
+    unshift @samples,['Max',sprintf("%.3f",max(map{$_->[1]}@samples)),sprintf("%.3f",max(map{$_->[2]}@samples)),sprintf("%.3f",max(map{$_->[3]}@samples))];
+    unshift @samples,['Mean',sprintf("%.3f",mean(map{$_->[1]}@samples)),sprintf("%.3f",mean(map{$_->[2]}@samples)),sprintf("%.3f",mean(map{$_->[3]}@samples))];
+    unshift @samples,['Min',sprintf("%.3f",min(map{$_->[1]}@samples)),sprintf("%.3f",min(map{$_->[2]}@samples)),sprintf("%.3f",min(map{$_->[3]}@samples))];
 
     #print header
     print $SUMMARY_LOG join("\t","ID","Assembled","Discarded","Unassembled"),"\n";
 
     #print out all the data
-    foreach my $sample (@sorted_samples) {
+    foreach my $sample (@samples) {
 	print $SUMMARY_LOG join("\t",@$sample),"\n";
     }
     return sprintf("%.3f",min(map{$_->[1]}@samples))
@@ -189,9 +189,9 @@ The name of the output directory to place all PEAR output files.
 
 Using this option without a value will use all CPUs on machine, while giving it a value will limit to that many CPUs. Without option only one CPU is used. 
 
-=item B<-g, --gzip_output_off>
+=item B<-g, --gzip_output>
 
-By default the PEAR output files are all compressed using gzip. This can be turned off using this option.
+Gzip the PEAR output files.
 
 =item B<-f, --full_log <file>>
 
