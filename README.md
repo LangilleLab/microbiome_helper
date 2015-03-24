@@ -78,18 +78,18 @@ Metagenomics Workflow
 16S Workflow
 ------------
 
-*Note that this workflow starts with raw paired-end MiSeq data in demultiplexed fastq format.*
+*Note that this workflow starts with raw paired-end MiSeq data in demultiplexed fastq format assumed to be located within a folder called `raw_miseq_data`*
 
-1. Run fastqc to allow manual inspection of the quality of sequences (optional)
+1. (Optional) Run fastqc to allow manual inspection of the quality of sequences
 
         mkdir fastqc_out
         fastqc -t 4 raw_miseq_data/* -o fastqc_out/
 
-2. 2. Stich paired end reads together (summary of stitching results are written to "pear_summary_log.txt") (~3 hours)
+2. Stich paired end reads together (summary of stitching results are written to "pear_summary_log.txt")
 
         run_pear.pl -p 4 -o stitched_reads raw_miseq_data/* 
 		
-3. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them. (~20 minutes)
+3. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them.
 
         run_fastq_to_fasta.pl -p -o fasta_files stitched_reads/*.assembled.*
 
