@@ -9,11 +9,14 @@ use Parallel::ForkManager;
 
 my ($parallel,$help);
 my $out_dir='./';
-my $kegg_db="/home/shared/kegg/kegg.reduced";
-
+my $db="/home/shared/kegg/kegg.reduced";
+my $prefix;
+my $tmp_dir="/tmp";
 my $res = GetOptions("out_dir=s" => \$out_dir,
 		     "parallel:i"=>\$parallel,
-		     "kegg_db=s" =>\$kegg_db,
+		     "db=s" =>\$db,
+		     "scheduler_prefix=s"=>\$prefix,
+		     "tmp_dir=s"=>\$tmp_dir,
 		     "help"=>\$help,
     )or pod2usage(2);
 
@@ -45,7 +48,10 @@ foreach my $file (@files){
 
     my $out_file=$out_dir.'/'.$file_name.".txt";
    
-    my $cmd="diamond blastx -p $cpu_count -d $kegg_db -q $file -o $out_file -t /tmp/";
+    my $cmd="diamond blastx -p $cpu_count -d $db -q $file -o $out_file -t $tmp_dir/";
+    if($prefix){
+       $cmd="$prefix $cmd";
+    }
     print $cmd,"\n";
     system($cmd);
 }
