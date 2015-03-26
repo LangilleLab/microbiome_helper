@@ -30,6 +30,7 @@ The following programs should be installed with commands accessible from the use
 **Metagenomics**
 * Bowtie2: http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
 * Human pre-indexed database: ftp://ftp.ccb.jhu.edu/pub/data/bowtie2_indexes/hg19.zip
+* DIAMOND (v.0.6.5): http://ab.inf.uni-tuebingen.de/software/diamond/
 * MetaPhlAn2: https://bitbucket.org/biobakery/metaphlan2
 * HUMAnN: http://huttenhower.sph.harvard.edu/humann
 
