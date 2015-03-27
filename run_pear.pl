@@ -120,7 +120,7 @@ sub create_summary_log{
 	    my ($assembled_percent) = $assembled_string =~ /(\d+\.\d+)\%/;
 	    my ($discarded_percent) = $discarded_string =~ /(\d+\.\d+)\%/;
 	    my ($unassembled_percent) = $unassembled_string =~ /(\d+\.\d+)\%/;
-	    my ($assembled_file) = $assembled_file_string =~ /([\w|-|\.]+)\.assembled/;
+	    my ($assembled_file) = $assembled_file_string =~ /([\w|\-|\.]+)\.assembled/;
 	    push (@samples, [$assembled_file,$assembled_percent,$discarded_percent,$unassembled_percent]);
 	}
     }
