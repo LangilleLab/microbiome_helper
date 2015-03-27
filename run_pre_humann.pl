@@ -9,14 +9,19 @@ use Parallel::ForkManager;
 
 my ($parallel,$help);
 my $out_dir='./';
-my $db="/home/shared/kegg/kegg.reduced";
-my $prefix;
-my $tmp_dir="/tmp";
+my $db;
+my $cluster;
+my $tmp_dir;
+my $write_only;
+my %search_types=('diamond'=>1,'blast'=>1);
+my $search_type='diamond';
 my $res = GetOptions("out_dir=s" => \$out_dir,
 		     "parallel:i"=>\$parallel,
 		     "db=s" =>\$db,
-		     "scheduler_prefix=s"=>\$prefix,
+		     "search_type=s"=>\$search_type,
+		     "cluster_submission"=>\$cluster,
 		     "tmp_dir=s"=>\$tmp_dir,
+		     "write_only"=>\$write_only,
 		     "help"=>\$help,
     )or pod2usage(2);
 
@@ -25,6 +30,19 @@ pod2usage(-verbose=>2) if $help;
 my @files=@ARGV;
 
 pod2usage($0.': You must provide a list of fasta/fastq files to be searched against KEGG.') unless @files;
+
+pod2usage("Your --search_type $search_type is not one ",join(keys %search_types)) unless $search_types{$search_type}; 
+
+#set default for tmp dir (unless already set by the user)
+unless($tmp_dir){
+    #if submitting jobs to computer cluster
+    if($cluster){
+	#use env variable $TMPDIR
+	$tmp_dir='\$TMPDIR';
+    }else{
+	$tmp_dir='/tmp';
+    }
+}
 
 #make output directory 
 system("mkdir -p $out_dir");
@@ -47,13 +65,27 @@ foreach my $file (@files){
     my ($file_name,$dir)=fileparse($file, qr/\.[^.]*/);
 
     my $out_file=$out_dir.'/'.$file_name.".txt";
-   
-    my $cmd="diamond blastx -p $cpu_count -d $db -q $file -o $out_file -t $tmp_dir/";
-    if($prefix){
-       $cmd="$prefix $cmd";
+
+    my $cmd;
+    if($search_type eq 'diamond'){
+	$db="/home/shared/kegg/diamond_db/kegg.reduced" unless $db;
+	$cmd="diamond blastx -p $cpu_count -d $db -q $file -o $out_file -t $tmp_dir -v";
+    }elsif($search_type eq 'blast'){
+	$db="/home/shared/kegg/blast_db/kegg.reduced" unless $db;
+	$cmd="blastx -num_threads $cpu_count -outfmt 6 -db $db -query $file -out $out_file"
+    }
+
+    if($cluster){
+	my $log_dir='./log/';
+	`mkdir -p $log_dir`;
+	my $stderr=$log_dir.$file_name.'.stderr';
+	my $stdout=$log_dir.$file_name.'.stdout';
+	$cmd = "echo \"echo \\\$TMPDIR; hostname; $cmd\" | qsub -l h_rt=46:00:00 -pe openmp $cpu_count -l h_vmem=4G -V -cwd -e \"$stderr\" -o \"$stdout\" -N \"$file_name\" -S /bin/bash";
     }
     print $cmd,"\n";
-    system($cmd);
+    unless($write_only){
+	system($cmd);
+    }
 }
 
 __END__
