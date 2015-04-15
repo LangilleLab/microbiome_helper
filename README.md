@@ -66,7 +66,7 @@ Metagenomics Workflow
     
         run_human_filter.pl -p 4 -o screened_reads/ stitched_reads/*.assembled*
 
-4. Run Metaphlan for taxanomic composition
+4. Run Metaphlan for taxonomic composition
 
         run_metaphlan2.pl -p 4 -o metaphlan_taxonomy.txt screened_reads/*
 
