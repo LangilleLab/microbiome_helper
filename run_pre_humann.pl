@@ -64,12 +64,14 @@ my %paired_files;
 foreach my $file (@files){
     my ($file_name,$dir)=fileparse($file, qr/\.[^.]*/);
 
-    my $out_file=$out_dir.'/'.$file_name.".txt";
+    my $out_file=$out_dir.'/'.$file_name;
+    my $out_file_daa=$out_file.'.daa';
+    my $out_file_txt=$out_file.'.txt';
 
     my $cmd;
     if($search_type eq 'diamond'){
 	$db="/home/shared/kegg/diamond_db/kegg.reduced" unless $db;
-	$cmd="diamond blastx -p $cpu_count -d $db -q $file -o $out_file -t $tmp_dir -v";
+	$cmd="~/programs/diamond blastx -p $cpu_count -d $db -q $file -a $out_file -t $tmp_dir -v;~/programs/diamond view -a $out_file_daa -o $out_file_txt";
     }elsif($search_type eq 'blast'){
 	$db="/home/shared/kegg/blast_db/kegg.reduced" unless $db;
 	$cmd="blastx -num_threads $cpu_count -outfmt 6 -db $db -query $file -out $out_file"
