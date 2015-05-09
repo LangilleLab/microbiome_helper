@@ -15,13 +15,17 @@ my $tmp_dir;
 my $write_only;
 my %search_types=('diamond'=>1,'blast'=>1);
 my $search_type='diamond';
+my $diamond_location='diamond';
+my $force;
 my $res = GetOptions("out_dir=s" => \$out_dir,
 		     "parallel:i"=>\$parallel,
 		     "db=s" =>\$db,
 		     "search_type=s"=>\$search_type,
 		     "cluster_submission"=>\$cluster,
 		     "tmp_dir=s"=>\$tmp_dir,
+		     "location=s"=>\$diamond_location,
 		     "write_only"=>\$write_only,
+		     "force"=>\$force,
 		     "help"=>\$help,
     )or pod2usage(2);
 
@@ -71,7 +75,7 @@ foreach my $file (@files){
     my $cmd;
     if($search_type eq 'diamond'){
 	$db="/home/shared/kegg/diamond_db/kegg.reduced" unless $db;
-	$cmd="~/programs/diamond blastx -p $cpu_count -d $db -q $file -a $out_file -t $tmp_dir -v;~/programs/diamond view -a $out_file_daa -o $out_file_txt";
+	$cmd="$diamond_location blastx -p $cpu_count -d $db -q $file -a $out_file -t $tmp_dir -c 1;$diamond_location view -a $out_file_daa -o $out_file_txt";
     }elsif($search_type eq 'blast'){
 	$db="/home/shared/kegg/blast_db/kegg.reduced" unless $db;
 	$cmd="blastx -num_threads $cpu_count -outfmt 6 -db $db -query $file -out $out_file"
@@ -82,11 +86,15 @@ foreach my $file (@files){
 	`mkdir -p $log_dir`;
 	my $stderr=$log_dir.$file_name.'.stderr';
 	my $stdout=$log_dir.$file_name.'.stdout';
-	$cmd = "echo \"echo \\\$TMPDIR; hostname; $cmd\" | qsub -l h_rt=46:00:00 -pe openmp $cpu_count -l h_vmem=4G -V -cwd -e \"$stderr\" -o \"$stdout\" -N \"$file_name\" -S /bin/bash";
+	$cmd = "echo \"echo \\\$TMPDIR; hostname; time $cmd\" | qsub -l h_rt=46:00:00 -pe openmp $cpu_count -l h_vmem=4G -V -cwd -e \"$stderr\" -o \"$stdout\" -N \"$file_name\" -S /bin/bash";
     }
-    print $cmd,"\n";
-    unless($write_only){
-	system($cmd);
+
+    #only do run if output doesn't exist (or force option is used)
+    if(!(-e $out_file) || $force){
+	print $cmd,"\n";
+	unless($write_only){
+	    system($cmd);
+	}
     }
 }
 
@@ -98,7 +106,7 @@ run_pre_humann.pl - A simple wrapper for pre_humann to screen for human sequence
 
 =head1 USAGE
 
-run_pre_humann.pl [-p [<# proc>] -o <out_dir> -h] <list of fastq or fasta files>
+run_pre_humann.pl [-d <db> -p [<# proc>] -o <out_dir> -h] <list of fastq or fasta files>
 
 E.g.
 
