@@ -7,17 +7,14 @@ use Getopt::Long;
 use Pod::Usage;
 use Parallel::ForkManager;
 
-my $metaphlan_dir='/home/mlangill/programs/metaphlan2/';
-my $metaphlan_script=$metaphlan_dir.'metaphlan2.py';
-my $metaphlan_db=$metaphlan_dir.'db_v20/mpa_v20_m200';
-my $metaphlan_pkl=$metaphlan_dir.'db_v20/mpa_v20_m200.pkl';
-my $metaphlan_merge=$metaphlan_dir.'utils/merge_metaphlan_tables.py';
+my $metaphlan_dir='/usr/local/metaphlan2/';
 
 #location to store intermediate metaphlan files
 my $metaphlan_out_dir='./metaphlan_out/';
 
 my ($final_out_file,$parallel,$help);
 my $res = GetOptions("output=s" => \$final_out_file,
+		     "location=s"=> \$metaphlan_dir, 
 		     "parallel:i"=>\$parallel,
 		     "help"=>\$help,
     )or pod2usage(2);
@@ -25,6 +22,11 @@ my $res = GetOptions("output=s" => \$final_out_file,
 pod2usage(-verbose=>2) if $help;
 
 pod2usage($0.': You must specify an output file.') unless defined $final_out_file;
+
+my $metaphlan_script=$metaphlan_dir.'metaphlan2.py';
+my $metaphlan_db=$metaphlan_dir.'db_v20/mpa_v20_m200';
+my $metaphlan_pkl=$metaphlan_dir.'db_v20/mpa_v20_m200.pkl';
+my $metaphlan_merge=$metaphlan_dir.'utils/merge_metaphlan_tables.py';
 
 my $cpu_count=0;
 #if the option is set
