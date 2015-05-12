@@ -75,10 +75,10 @@ foreach my $file (@files){
     my $cmd;
     if($search_type eq 'diamond'){
 	$db="/home/shared/kegg/diamond_db/kegg.reduced" unless $db;
-	$cmd="$diamond_location blastx -p $cpu_count -d $db -q $file -a $out_file -t $tmp_dir -c 1;$diamond_location view -a $out_file_daa -o $out_file_txt";
+	$cmd="$diamond_location blastx -p $cpu_count -d $db -q $file -a $out_file -t $tmp_dir -c 1;$diamond_location view -a $out_file_daa -o $out_file_txt;rm $out_file_daa";
     }elsif($search_type eq 'blast'){
 	$db="/home/shared/kegg/blast_db/kegg.reduced" unless $db;
-	$cmd="blastx -num_threads $cpu_count -outfmt 6 -db $db -query $file -out $out_file"
+	$cmd="blastx -num_threads $cpu_count -outfmt 6 -db $db -query $file -out $out_file_txt"
     }
 
     if($cluster){
@@ -90,7 +90,7 @@ foreach my $file (@files){
     }
 
     #only do run if output doesn't exist (or force option is used)
-    if(!(-e $out_file) || $force){
+    if(!(-e $out_file_txt) || $force){
 	print $cmd,"\n";
 	unless($write_only){
 	    system($cmd);
