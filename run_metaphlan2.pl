@@ -12,10 +12,15 @@ my $metaphlan_dir='/usr/local/metaphlan2/';
 #location to store intermediate metaphlan files
 my $metaphlan_out_dir='./metaphlan_out/';
 
+my $bowtie='sensitive-local';
+my $align_len=50;
+
 my ($final_out_file,$parallel,$help);
 my $res = GetOptions("output=s" => \$final_out_file,
-		     "location=s"=> \$metaphlan_dir, 
+		     "location=s"=> \$metaphlan_dir,
+		     "align_len=i"=>\$align_len,
 		     "parallel:i"=>\$parallel,
+		     "bowtie:s"=>\$bowtie,
 		     "help"=>\$help,
     )or pod2usage(2);
 
@@ -75,7 +80,7 @@ foreach my $name (keys %paired_files){
     }
     my $out_file=$metaphlan_out_dir.$name;
     my $cmd=join(' ',$cat,@{$paired_files{$name}});
-    $cmd.=" | $metaphlan_script  --input_type multifastq --mpa_pkl $metaphlan_pkl --bt2_ps sensitive-local --bowtie2db $metaphlan_db --no_map > $out_file";
+    $cmd.=" | $metaphlan_script  --input_type multifastq --mpa_pkl $metaphlan_pkl --bt2_ps $bowtie --min_alignment_len $align_len --bowtie2db $metaphlan_db --no_map > $out_file";
     print $cmd,"\n";
     system($cmd);
     $pm->finish;
@@ -97,7 +102,7 @@ run_metaphlan2.pl - Provide a simpler way to run metaphlan
 
 =head1 USAGE
 
-run_metaphlan2.pl [-p [<# proc>] -h] -o out.txt <list of fastq files>
+run_metaphlan2.pl [-b <bowtie setting> -a <min_align_len> -l <metaphlan_dir> -p [<# proc>] -h] -o out.txt <list of fastq files>
 
 E.g.
 
@@ -128,13 +133,17 @@ run_metaphlan2.pl -o out.txt sample1_R1_001.fastq.gz sample1_R2_001.fastq.gz sam
 
 =over 4
 
-=item B<-d, --output <file>>
+=item B<-o, --output <file>>
 
 Mandatory. The name of the file for the merged data to be written to.
 
 =item B<-p, --parallel [<# of proc>]>
 
 Using this option without a value will use all CPUs on machine, while giving it a value will limit to that many CPUs. Without option only one CPU is used. 
+
+=item B<-a, --align_len <min_align_len>>
+
+This sets the minimum alignment length for sequences to match between the reads and the marker database.
 
 =item B<-h, --help>
 
