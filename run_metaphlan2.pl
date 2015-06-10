@@ -128,6 +128,10 @@ run_metaphlan2.pl -o out.txt *.fastq -p 2
 
 run_metaphlan2.pl -o out.txt *.fastq.gz
 
+#input files can be in fasta format in addition to fastq (optionally gzipped as well)
+
+run_metaphlan2.pl -o out.txt *.fasta
+
 #paired end files can be handled by concatentating them on the fly (files must have "_R1_" and "_R2_" within the file name)
 
 run_metaphlan2.pl -o out.txt sample1_R1_001.fastq.gz sample1_R2_001.fastq.gz sample2_R1_001.fastq.gz sample2_R2_001.fastq.gz
