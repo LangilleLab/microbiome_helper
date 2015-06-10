@@ -52,6 +52,7 @@ system("mkdir -p $metaphlan_out_dir");
 
 my @files=@ARGV;
 
+my $format='multifasta';
 
 my %paired_files;
 my $gzipped=0;
@@ -59,6 +60,9 @@ foreach(@files){
     my ($file,$dir,$suffix)=fileparse($_, qr/\.[^.]*/);
     if($suffix eq '.gz'){
 	$gzipped=1;
+    }
+    if($suffix =~ /fastq/ || $file =~ /fastq/){
+	$format='multifastq';
     }
 
     my $name=$file;
@@ -80,7 +84,7 @@ foreach my $name (keys %paired_files){
     }
     my $out_file=$metaphlan_out_dir.$name;
     my $cmd=join(' ',$cat,@{$paired_files{$name}});
-    $cmd.=" | $metaphlan_script  --input_type multifastq --mpa_pkl $metaphlan_pkl --bt2_ps $bowtie --min_alignment_len $align_len --bowtie2db $metaphlan_db --no_map > $out_file";
+    $cmd.=" | $metaphlan_script  --input_type $format --mpa_pkl $metaphlan_pkl --bt2_ps $bowtie --min_alignment_len $align_len --bowtie2db $metaphlan_db --no_map > $out_file";
     print $cmd,"\n";
     system($cmd);
     $pm->finish;
