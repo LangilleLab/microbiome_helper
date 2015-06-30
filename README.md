@@ -198,13 +198,14 @@ PICRUSt workflow (for 16S data)
 
 1. First reduce OTU table to just the reference OTUs
 
-        filter_otus_from_otu_table.py -i final_otu_tables/otu_table.biom -o final_otu_tables/closed_otus.biom --negate_ids_to_exclude -e ~/.virtualenvs/qiime1.9/lib/python2.7/site-packages/qiime_default_reference/gg_13_8_otus/rep_set/97_otus.fasta
+        filter_otus_from_otu_table.py -i final_otu_tables/otu_table.biom -o final_otu_tables/closed_otus.biom --negate_ids_to_exclude -e /usr/local/lib/python2.7/dist-packages/qiime_default_reference/gg_13_8_otus/rep_set/97_otus.fasta
 
 2. Convert from BIOM encoding from hdf5 to json
 
         biom convert -i final_otu_tables/closed_otus.biom -o final_otu_tables/closed_otus_json.biom --to-json --table-type "OTU table"
 
 3. PICRUSt: normalize OTU table by predicted 16S copy numbers. NOTE: PICRUSt has not been updated yet for BIOM 2.1. Therefore you must change to a python environment with biom 1.3.1 for the next 3 commands)
+
 
         normalize_by_copy_number.py -i final_otu_tables/closed_otus_json.biom -o final_otu_tables/closed_otus_norm.biom
 
