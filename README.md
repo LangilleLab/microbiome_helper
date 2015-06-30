@@ -204,6 +204,11 @@ PICRUSt workflow (for 16S data)
 
         biom convert -i final_otu_tables/closed_otus.biom -o final_otu_tables/closed_otus_json.biom --to-json --table-type "OTU table"
 
+(Temporary fix) Install BIOM 1.3.1 and temporarily change your PYTHONPATH
+
+        pip install --target lib biom-format==1.3.1
+        export PYTHONPATH=~/lib/:$PYTHONPATH
+
 3. PICRUSt: normalize OTU table by predicted 16S copy numbers. NOTE: PICRUSt has not been updated yet for BIOM 2.1. Therefore you must change to a python environment with biom 1.3.1 for the next 3 commands)
 
 
