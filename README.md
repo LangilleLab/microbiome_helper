@@ -207,7 +207,7 @@ PICRUSt workflow (for 16S data)
 (Temporary fix) Install BIOM 1.3.1 and temporarily change your PYTHONPATH
 
         pip install --target lib biom-format==1.3.1
-        export PYTHONPATH=~/lib/:$PYTHONPATH
+        export PYTHONPATH=~/lib/
 
 3. PICRUSt: normalize OTU table by predicted 16S copy numbers. NOTE: PICRUSt has not been updated yet for BIOM 2.1. Therefore you must change to a python environment with biom 1.3.1 for the next 3 commands)
 
@@ -221,6 +221,10 @@ PICRUSt workflow (for 16S data)
 5. PICRUSt: Collapse KOs into KEGG Pathways
 
         categorize_by_function.py -i ko.biom -l 3 -c KEGG_Pathways -o ko_L3.biom
+
+(Temporary Fix) Revert back to newer BIOM version by exiting and logging back into the shell or:
+
+        export PYTHONPATH=''
 
 6. Convert BIOM to STAMP format
 
