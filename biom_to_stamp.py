@@ -9,13 +9,32 @@ __maintainer__ = "Morgan Langille"
 __email__ = "morgan.g.i.langille@gmail.com"
 __status__ = "Development"
 
-
-from cogent.util.option_parsing import parse_command_line_parameters, make_option
-#Requires BIOM v2.1
-from biom import load_table
+import argparse
 from os.path import join
 import sys
 import re
+#Requires BIOM v2.1
+from biom import load_table
+
+
+parser = argparse.ArgumentParser(description="Convert a BIOM table to a compatible STAMP profile table. Metadata will be parsed and used as hiearachal data for STAMP.", 
+                                 epilog='''Examples of Usage:
+#OTU table from QIIME:
+biom_to_stamp.py -m taxonomy otu.biom > otu.spf
+
+#KO file from PICRUSt
+biom_to_stamp.py -m KEGG_Description ko.biom > ko.spf
+
+#KEGG Pathways table from PICRUSt
+biom_to_stamp.py -m KEGG_Pathways pathways.biom > pathways.spf
+
+#Don't use any metadata, just the observation ids (useful for looking just at OTU level)
+biom_to_stamp.py otu.biom > otu.spf
+'''
+                                 ,formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument("biom_file",help="input BIOM file")
+
+parser.add_argument("-m","--metadata",help="Name of metadata field to be used (e.g. taxonomy, KEGG_Description, KEGG_Pathways")
 
 script_info = {}
 script_info['brief_description'] = "Convert a BIOM table to a compatible STAMP profile table."
@@ -31,13 +50,7 @@ script_info['script_usage'] = [\
 
 script_info['output_description']= "Output is written to STDOUT"
 
-script_info['optional_options'] = [\
-    make_option('-m','--metadata',default=None,type="string",help='Name of metadata. [default: %default]')]
 
-
-script_info['disallow_positional_arguments'] = False
-
-script_info['version'] = __version__
        
 def process_metadata(metadata,metadata_name,obs_id):
     if metadata_name =='taxonomy':
@@ -63,17 +76,12 @@ def process_metadata(metadata,metadata_name,obs_id):
         return metadata
 
 def main():
-    option_parser, opts, args =\
-                   parse_command_line_parameters(**script_info)
+    args = parser.parse_args()
 
-    min_args = 1
-    if len(args) < min_args:
-       option_parser.error('A BIOM file must be provided.')
-
-    file_name = args[0]
+    file_name = args.biom_file
     table = load_table(file_name)
 
-    metadata_name=opts.metadata
+    metadata_name=args.metadata
 
     #create the list of observation ids
     obs_ids=table.ids('observation')
