@@ -50,12 +50,13 @@ script_info['script_usage'] = [\
 
 script_info['output_description']= "Output is written to STDOUT"
 
-
        
 def process_metadata(metadata,metadata_name,obs_id):
     if metadata_name =='taxonomy':
         fixed_metadata=[]
         for idx,val in enumerate(metadata):
+            #odd case that sometimes metadata may have leading space
+            val=val.lstrip()
             if(re.match(r'[a-z]__$',val)):
                 fixed_metadata.append("Unclassified")
             else:
