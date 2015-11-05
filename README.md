@@ -266,6 +266,9 @@ I find STAMP to be a very useful tool for creating figures and doing statistical
 
 * **run_fastq_to_fasta.pl**: Wraps the fastq_to_fasta command from the FASTX Toolkit to allow the use of multiple threads.
 
+* **chimeraFilter.pl**: Wraps UCHIME (implemented in USEARCH) to filter out chimeric reads from a directory of reads in fasta format.  
+
+* **readFilter.pl**: Wraps several read filtering commands together (using FASTX Toolkit and BBMap) to run on a directory of fastq files. 
 
 Contact
 -------
