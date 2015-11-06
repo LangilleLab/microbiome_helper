@@ -105,7 +105,7 @@ Metagenomics Workflow
 
         run_pear.pl -p 4 -o stitched_reads raw_data/* 
 
-3. Filter stitched reads by quality score, length and ensure forward and reverse primers match each read:
+3. Filter stitched reads by quality score, length and ensure forward and reverse primers match each read
 
 	readFilter.pl -q 30 -p 90 -l 400 stitched_reads/*.assembled.*
 	
@@ -113,7 +113,7 @@ Metagenomics Workflow
 
         run_fastq_to_fasta.pl -p -o fasta_files filtered_reads/*
 
-5. Remove chimeric sequences with UCHIME: 
+5. Remove chimeric sequences with UCHIME
 
 	chimeraFilter.pl -type 1 -db /usr/local/db/single_strand/Bacteria_RDP_trainset15_092015.udb fasta_files/*	
 
