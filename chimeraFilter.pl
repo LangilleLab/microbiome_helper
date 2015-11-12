@@ -164,6 +164,8 @@ chimeraFilter.pl - wrapper to filter out chimeric reads from fasta files (using 
 chimeraFilter.pl [-log <logfile> -thread <#_CPU_to_use> -o <out_dir> -minh <minimum chimera score> -mindiv <minimum divergence> -h]  -type <0 or 1> -db <database of known 16S genes> <list of fasta files>
 
 
+NOTE: currently the binary "usearch61" (USEARCH 6.1) needs to be in your path. This will be fixed soon!
+
 =head1 OPTIONS
 
 =over 4

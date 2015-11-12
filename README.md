@@ -37,6 +37,7 @@ The following programs should be installed with commands accessible from the use
 **16S**
 * FASTX toolkit (v0.0.14): http://hannonlab.cshl.edu/fastx_toolkit/download.html
 * BBMap (v35.59): http://sourceforge.net/projects/bbmap 
+* USEARCH (v6.1.544): http://www.drive5.com/usearch/
 * QIIME (v1.9): http://qiime.org
 * SortMeRNA: http://bioinfo.lifl.fr/RNA/sortmerna/
 * SUMACLUST: http://metabarcoding.org/sumatra
