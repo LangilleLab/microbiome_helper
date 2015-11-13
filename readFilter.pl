@@ -43,6 +43,9 @@ if ( ( $quality == 0 ) or ( $percent == 0 ) or ( $length == 0 ) )	{
 	die "min_quality, percent and min_length are required parameters that need non-zero interger values\nfor help type:	 perl readFilter.pl -h\n";
 }
 
+if ( ! -e "$bbmap_dir/bbduk.sh" )	{	die "$bbmap_dir/bbduk.sh does not exists, you may need to set the --bmap (-b) flag\n";	}
+
+if ( index( `fastq_quality_filter -h` , "FASTX"  ) == -1 )	{	die "fastq_quality_filter is not in your path\n";	}
 
 my $cpu_count=1;
 #if the option is set
@@ -63,10 +66,8 @@ my @files=@ARGV;
 
 pod2usage($0.': You must provide a list of fastq files to be filtered.') unless @files;
 
-
 my @cmds = ();
 my @tmpLog = ();
-
 
 foreach my $path ( @files )	{
 	
