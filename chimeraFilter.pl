@@ -8,6 +8,8 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $help; 
+my $version = "1.0";
+my $version_marker;
 
 my $parallel;
 my $db ;
@@ -25,9 +27,12 @@ my $res = GetOptions("type:i"=> \$type,
 		     "mindiv=f"=>\$mindiv,
 		     "minh=f"=>\$minh,
 		     "help|h"=>\$help,
+		     "version|v"=>\$version_marker,
 	  )	or pod2usage(2);
 
 pod2usage(-verbose=>2) if $help;
+
+if ( $version_marker )	{	print "version $version\n";	exit	}
 
 my $cpu_count=1;
 #if the option is set
@@ -172,6 +177,14 @@ NOTE: currently the binary "usearch61" (USEARCH 6.1) needs to be in your path, y
 
 =over 4
 
+=item B<-h, --help>
+
+Displays the entire help documentation.
+
+=item B<-v, --version>
+
+Displays version number and exits.
+
 =item B<-type <0 or 1>>
 
 Non-chimeric output type, either only sequences that are clearly non-chimeric (1),
@@ -201,10 +214,6 @@ Using this option without a value will use all CPUs on machine, while giving it 
 
 The location to write the log file.
  
-=item B<-h, --help>
-
-Displays the entire help documentation.
-
 =item B<-db, --database> 
 
 Database of 16S sequences to use as a reference (.udb or fasta file).

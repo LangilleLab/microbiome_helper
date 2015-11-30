@@ -8,6 +8,8 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $help; 
+my $version_marker;
+my $version = "1.01";
 
 my $quality = 0;
 my $percent = 0;
@@ -18,6 +20,8 @@ my $forward = "ACGCGHNRAACCTTACC";
 my $reverse = "TTGYACWCACYGCCCGT";
 ### (note that the above is the reverse complement of the below primer)
 ### my $reverse = "ACGGGCRGTGWGTRCAA";
+
+my $primer_check = "both";
 
 my $out_dir = "filtered_reads";
 my $log = "readFilter_log.txt";
@@ -34,10 +38,13 @@ my $res = GetOptions("out_dir|o=s" => \$out_dir,
 		     "forward|f=s" => \$forward,
 		     "reverse|r=s" => \$reverse,
 		     "bbmap|b=s" => \$bbmap_dir,
+		     "primer_check|pc=s" => \$primer_check,
+		     "version|v" => \$version_marker,
 	  )	or pod2usage(2);
 
 pod2usage(-verbose=>2) if $help;
 
+if ( $version_marker )	{	print "version $version\n";	exit	}
 
 if ( ( $quality == 0 ) or ( $percent == 0 ) or ( $length == 0 ) )	{
 	die "min_quality, percent and min_length are required parameters that need non-zero interger values\nfor help type:	 perl readFilter.pl -h\n";
@@ -46,6 +53,14 @@ if ( ( $quality == 0 ) or ( $percent == 0 ) or ( $length == 0 ) )	{
 if ( ! -e "$bbmap_dir/bbduk.sh" )	{	die "$bbmap_dir/bbduk.sh does not exists, you may need to set the --bmap (-b) flag\n";	}
 
 if ( index( `fastq_quality_filter -h` , "FASTX"  ) == -1 )	{	die "fastq_quality_filter is not in your path\n";	}
+
+if ( $primer_check eq "both" )	{
+	print STDERR "checking for forward (5') primer $forward and reverse (3') primer $reverse\n";
+} elsif ( $primer_check eq "forward" )	{
+	print STDERR "checking for forward (5') primer $forward only\n";
+} else {
+	die "--primer_check option needs to be either \"both\" or \"forward\" (default: both), the current setting of \"$primer_check\" is invalid.\n";
+}
 
 my $cpu_count=1;
 #if the option is set
@@ -99,16 +114,29 @@ foreach my $path ( @files )	{
 	my $output_tmp2 = $out_dir . "/" . $outfile_tmp2;
 	my $output_tmp3 = $out_dir . "/" . $outfile_tmp3;
 	my $log_tmp_out = $out_dir ."/" . $log_tmp;
-	
+
+	if ( -e $output )	{	die "output file $output already exists\n";	}
+
 	my $f_l = length $forward;
 	my $r_l = length $reverse;
 
 	my $qFilterCmd = "fastq_quality_filter -v -Q33 -q $quality -p $percent -i $path -o $output_tmp1  >>$log_tmp_out";
 	my $lFilterCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp1 outu=$output_tmp2 minlength=$length 2>>$log_tmp_out";
-	my $forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output_tmp3  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
-	my $reversePrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp3 outm=$output  restrictright=$r_l k=$r_l literal=$reverse mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 
-	my @tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , $reversePrimerCmd , "rm $output_tmp1" , "rm $output_tmp2" , "rm $output_tmp3" );
+	my $forwardPrimerCmd;
+	my $reversePrimerCmd;
+	my @tmp = ();
+
+	if ( $primer_check eq "both" )	{
+		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output_tmp3  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
+		$reversePrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp3 outm=$output  restrictright=$r_l k=$r_l literal=$reverse mm=f rcomp=f copyundefined 2>>$log_tmp_out";
+		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , $reversePrimerCmd , "rm $output_tmp1" , "rm $output_tmp2" , "rm $output_tmp3" );
+
+	} elsif ( $primer_check eq "forward" )	{
+		
+		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
+		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , "rm $output_tmp1" , "rm $output_tmp2" );
+	} 
 
 	push( @cmds , \@tmp );
 
@@ -174,21 +202,32 @@ sub add2log	{
 		} else {}
 		
 	} close( 'TMP' );
-
+	
 	my $initial = $inCount[0];
 	my $qFiltered = $inCount[0] - $inCount[1];
 	my $lFiltered = $inCount[1] - $inCount[2];
-	my $forwardFiltered = $inCount[2] - $inCount[3];
-	my $reverseFiltered = $inCount[3] - $outCount[3];
-	my $final = $outCount[3];
+	my $forwardFiltered = $inCount[2] - $outCount[2];
+	
+	my $reverseFiltered;
+	my $final;
+	my $reversePercent;
+	
+	if ( $primer_check eq "both" )	{
+		$reverseFiltered = $inCount[3] - $outCount[3];
+		$final = $outCount[3];
+		$reversePercent = sprintf( "%.1f" , ($reverseFiltered / $initial)*100  );
+	} elsif ( $primer_check eq "forward" )	{
+		$reverseFiltered = "NA";
+		$final = $outCount[2];
+		$reversePercent = "NA";
+	}
 
 	### note that percents are all based on initial count!
 	my $qPercent = sprintf( "%.1f" , ($qFiltered / $initial)*100  );
 	my $lPercent = sprintf( "%.1f" , ($lFiltered / $initial)*100  );
 	my $forwardPercent = sprintf( "%.1f" , ($forwardFiltered / $initial)*100  );
-	my $reversePercent = sprintf( "%.1f" , ($reverseFiltered / $initial)*100  );
 	my $finalPercent = sprintf( "%.1f" , ($final / $initial)*100 );
-
+	
 	print LOG "$name	$initial	$qFiltered	$lFiltered	$forwardFiltered	$reverseFiltered	$final	$qPercent	$lPercent	$forwardPercent	$reversePercent	$finalPercent\n";
 
 	system( "rm $tmp" );
@@ -202,7 +241,7 @@ readFilter.pl - wrapper to filter reads by quality with fastx and then by total 
 
 =head1 USAGE
 
-readFilter.pl [-f <oligo> -r <oligo> -bbmap <directory> -log <logfile> -thread <#_CPU_to_use> -o <out_dir> -h] -q <min_quality> -p <min_percent_sites_with_q> -l <min_length>  <list of fastq files>
+readFilter.pl [-f <oligo> -r <oligo> -bbmap <directory> -log <logfile> -thread <#_CPU_to_use> -o <out_dir> -pc <both|forward> -h] -q <min_quality> -p <min_percent_sites_with_q> -l <min_length>  <list of fastq files>
 
 
 Examples:
@@ -226,6 +265,14 @@ readFilter.pl -thread -o filtered_reads -log filtered.log -q 20 -p 80 -l 350 *.f
 
 =over 4
 
+=item B<-h, --help>
+
+Displays the entire help documentation.
+
+=item B<-v, --version>
+
+Displays script version and exits.
+
 =item B<-o, --out_dir <file>>
 
 Output directory for filtered fastq files. Default is "filtered_reads".
@@ -238,10 +285,6 @@ Using this option without a value will use all CPUs on machine, while giving it 
 
 The location to write the log file.
  
-=item B<-h, --help>
-
-Displays the entire help documentation.
-
 =item B<-q, --min_quality>
 
 Minimum base quality.
@@ -265,6 +308,10 @@ Reverse primer to match at end of all reads (IUPAC format, default: TTGYACWCACYG
 =item B<-b, --bbmap>
 
 bbmap directory containing sh files (default: /usr/local/prg/bbmap). 
+
+=item B<-pc, --primer_check>
+
+either "both" or "forward", indicating whether to check both forward (5') and reverse (3') primer sequences or only the forward primer respectively (default: both).
 
 =back
 
