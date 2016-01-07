@@ -137,7 +137,7 @@ Metagenomics Workflow
 
 10. Filter OTU table to remove singletons as well as low-confidence OTUs that are likely due to MiSeq bleed-through between runs (reported by Illumina to be 0.1% of reads). 
 
-        remove_low_confidence_otus.py -i $PWD/clustering/otu_table_mc2_w_tax_no_pynast_failures.biom -o $PWD/clustering/otu_table_high_conf.biom
+        remove_low_confidence_otus.py -i $PWD/clustering/otu_table_mc1_w_tax_no_pynast_failures.biom -o $PWD/clustering/otu_table_high_conf.biom
 
 11. Summarize OTU table to determine number of sequences per sample.
 
