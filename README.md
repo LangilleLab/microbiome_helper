@@ -112,7 +112,7 @@ Metagenomics Workflow
 									
 4. Convert FASTQ stitched files to FASTA AND remove any sequences that have an 'N' in them.
 
-        run_fastq_to_fasta.pl -p -o fasta_files filtered_reads/*
+        run_fastq_to_fasta.pl -p 4 -o fasta_files filtered_reads/*
 
 5. Remove chimeric sequences with UCHIME (summary written to "chimeraFilter_log.txt" by default).
 
