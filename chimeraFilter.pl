@@ -206,7 +206,7 @@ Min score to be called as chimeric (default 0.2, note that this differs from the
 
 Output directory for filtered fastq files. Default is "non_chimeras".
 
-=item B<-thread [<# of CPUs>]>
+=item B<-thread <# of CPUs>>
 
 Using this option without a value will use all CPUs on machine, while giving it a value will limit to that many CPUs. Without option only one CPU is used. 
 
@@ -216,7 +216,7 @@ The location to write the log file.
  
 =item B<-db, --database> 
 
-Database of 16S sequences to use as a reference (.udb or fasta file).
+Database of 16S sequences to use as a reference (UDB or FASTA file). See http://www.drive5.com/usearch/manual/udb_files.html for more details on UDB files.
 
 =back
 

@@ -277,7 +277,7 @@ Displays script version and exits.
 
 Output directory for filtered fastq files. Default is "filtered_reads".
 
-=item B<-thread [<# of CPUs>]>
+=item B<-thread <# of CPUs>>
 
 Using this option without a value will use all CPUs on machine, while giving it a value will limit to that many CPUs. Without option only one CPU is used. 
 
