@@ -194,11 +194,11 @@ or
 all sequences that are not called as chimeric ( 0 - includes borderline sequences, "?" in uchime output).
 
 
-=item B<-mindiv <number>>
+=item B<-mindiv <float>>
 
 Min % divergence between query and target sequence (default 1.5, note that this differs from the uchime default of 0.8).
 
-=item B<-minh <number>>
+=item B<-minh <float>>
 
 Min score to be called as chimeric (default 0.2, note that this differs from the uchime default of 0.28).
 
@@ -214,7 +214,7 @@ Using this option without a value will use all CPUs on machine, while giving it 
 
 The location to write the log file.
  
-=item B<-db, --database> 
+=item B<-db, --database <file>> 
 
 Database of 16S sequences to use as a reference (UDB or FASTA file). See http://www.drive5.com/usearch/manual/udb_files.html for more details on UDB files.
 

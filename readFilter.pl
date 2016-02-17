@@ -285,31 +285,31 @@ Using this option without a value will use all CPUs on machine, while giving it 
 
 The location to write the log file.
  
-=item B<-q, --min_quality>
+=item B<-q, --min_quality <int>>
 
 Minimum base quality.
 
-=item B<-p, --percent>
+=item B<-p, --percent <int>>
 
 Minimum percent of bases per read that pass quality cut-off
 
-=item B<-l, --min_length>
+=item B<-l, --min_length <int>>
 
 Minimum read length.
 
-=item B<-f, --forward>
+=item B<-f, --forward <sequence>>
 
 Forward primer to match at beginning of all reads (IUPAC format, default: ACGCGHNRAACCTTACC).
 
-=item B<-r, --reverse>
+=item B<-r, --reverse <sequence>>
 
 Reverse primer to match at end of all reads (IUPAC format, default: TTGYACWCACYGCCCGT, which is the reverse complement of the primer ACGGGCRGTGWGTRCAA).
 
-=item B<-b, --bbmap>
+=item B<-b, --bbmap <path to directory>>
 
 bbmap directory containing sh files (default: /usr/local/prg/bbmap). 
 
-=item B<-pc, --primer_check>
+=item B<-pc, --primer_check <[both|forward]>>
 
 either "both" or "forward", indicating whether to check both forward (5') and reverse (3') primer sequences or only the forward primer respectively (default: both).
 
