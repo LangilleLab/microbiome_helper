@@ -137,6 +137,38 @@ run_pre_humann.pl *.fastq -p 2
 
 The name of the output directory to place all output files.
 
+=item B<-d, --db <file>>
+
+Path to KEGG database. 
+Default if running DIAMOND: "/home/shared/kegg/diamond_db/kegg.reduced".
+Default if running BLAST: "/home/shared/kegg/blast_db/kegg.reduced".
+
+Note that these databases may need to be generated with same version of DIAMOND/BLAST that you are using. 
+
+=item B<-s, --search_type <blast|diamond>>
+
+Specifies either "blast" or "diamond" (default: "diamond").
+
+=item B<-c, --cluster_submission>
+
+Set flag if running on cluster (when set == TRUE). 
+
+=item B<-t, --tmp_dir <path>>
+
+Path to tmp directory to use. By default is /tmp except on clusters where the TMP environment variable is used by default.
+
+=item B<-l, --location <path>>
+
+Path to DIAMOND binary. By default is "diamond", so it assumed to be in your $PATH. 
+
+=item B<-w, --write_only>
+
+Flag that will result in this script printing the commands to be run, but wont actually run them.
+
+=item B<-f, --force>
+
+Flag to indicate that old output files should be overwritten.
+
 =item B<-p, --parallel [<# of proc>]>
 
 Using this option without a value will use all CPUs on machine, while giving it a value will limit to that many CPUs. Without option only one CPU is used. 
@@ -147,6 +179,7 @@ Displays the entire help documentation.
 
 =back
 
+		     
 =head1 DESCRIPTION
 
 B<run_pre_humann.pl> This script allows for more automated running of the pre_humann program on multiple fastq files. 

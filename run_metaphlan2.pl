@@ -149,9 +149,17 @@ Mandatory. The name of the file for the merged data to be written to.
 
 Using this option without a value will use all CPUs on machine, while giving it a value will limit to that many CPUs. Without option only one CPU is used. 
 
+=item B<-l, --location <path>>
+
+Path to metaphlan directory. Default: "/usr/local/metaphlan2/".
+
 =item B<-a, --align_len <min_align_len>>
 
 This sets the minimum alignment length for sequences to match between the reads and the marker database.
+
+=item B<-b, --bowtie <alignment option>>
+
+Bowtie2 alignment option. Default: "sensitive-local". 
 
 =item B<-h, --help>
 
