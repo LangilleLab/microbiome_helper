@@ -9,7 +9,9 @@ use Parallel::ForkManager;
 
 my ($parallel,$help);
 my $out_dir='./';
+my $index_dir = "/home/shared/bowtiedb/hg19";
 my $res = GetOptions("out_dir=s" => \$out_dir,
+		     "db=s" => \$index_dir,
 		     "parallel:i"=>\$parallel,
 		     "help"=>\$help,
     )or pod2usage(2);
@@ -45,9 +47,9 @@ foreach my $file (@files){
     my $cmd;
     if($suffix eq '.fastq'){
 	#Can add --local option to make this more sensitive
-	$cmd="bowtie2 -x /home/shared/bowtiedb/hg19 -p $cpu_count -U $file --un $out_file >/dev/null";
+	$cmd="bowtie2 -x $index_dir -p $cpu_count -U $file --un $out_file >/dev/null";
     }else{
-	$cmd="bowtie2 -x /home/shared/bowtiedb/hg19 -p $cpu_count -f $file --un $out_file >/dev/null";
+	$cmd="bowtie2 -x $index_dir -p $cpu_count -f $file --un $out_file >/dev/null";
     }
     print $cmd,"\n";
     system($cmd);
@@ -61,7 +63,7 @@ run_human_filter.pl - A simple wrapper for human_filter to screen for human sequ
 
 =head1 USAGE
 
-run_human_filter.pl [-p [<# proc>] -o <out_dir> -h] <list of fastq or fasta files>
+run_human_filter.pl [-p [<# proc>] -o <out_dir> -d <path to index files> -h] <list of fastq or fasta files>
 
 E.g.
 
@@ -69,7 +71,11 @@ run_human_filter.pl sample1_assembled.fastq sample2_assembled.fastq
 
 #Shorter way to do the same thing
 
-run_human_filter.pl *.fastq
+run_human_filter.pl *.fastq 
+
+#Same as above, but specify a different bowtie index database
+
+run_human_filter.pl *.fastq -d /your_path/prefix
 
 #Specify alternate location for output files (instead of default current directory)
 
@@ -84,6 +90,8 @@ run_human_filter.pl *.fastq -p
 run_human_filter.pl *.fastq -p 2
 
 
+
+
 =head1 OPTIONS
 
 =over 4
@@ -91,6 +99,12 @@ run_human_filter.pl *.fastq -p 2
 =item B<-o, --out_dir <file>>
 
 The name of the output directory to place all output files.
+
+=item B<-d, --db <path>>
+
+Path to human genome bowtie index files. By default is "/home/shared/bowtiedb/hg19".
+Note that the last part of the path is actually the prefix of the index files 
+(e.g. the files in /home/shared/bowtiedb/ are: hg19.1.bt2  hg19.2.bt2  hg19.3.bt2  hg19.4.bt2  hg19.rev.1.bt2  hg19.rev.2.bt2). 
 
 =item B<-p, --parallel [<# of proc>]>
 
@@ -111,6 +125,8 @@ Before use make sure you have installed the "human_filter.pl" (along with corres
 =head1 AUTHOR
 
 Morgan Langille, E<lt>morgan.g.i.langille@gmail.comE<gt>
+
+Updated 30/03/2016 by Gavin Douglas  E<lt>gavin.douglas@dal.caE<gt>
 
 =cut
 
