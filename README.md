@@ -21,7 +21,7 @@ Including workflows (see below) for analyzing 16S and shotgun metagenomic data. 
    * [Taxonomic composition](https://github.com/mlangill/microbiome_helper/wiki/Taxonomic-composition)
    * [Functional profiling](https://github.com/mlangill/microbiome_helper/wiki/Functional-profiling)
 
-### 16S resources
+### 16S/18S resources
    * [16S standard operating procedure](https://github.com/mlangill/microbiome_helper/wiki/16S-standard-operating-procedure)
    * [16S tutorial](https://github.com/mlangill/microbiome_helper/wiki/16S-tutorial)
 
