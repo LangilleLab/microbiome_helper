@@ -3,7 +3,7 @@ Microbiome Helper
 
 An assortment of scripts to help process and automate various microbiome and metagenomic bioinformatic tools.
 
-Including workflows (see below) for analyzing 16S and shotgun metagenomic data, which are contained in an [Ubuntu virtual box image](https://github.com/mlangill/microbiome_helper/wiki/MicrobiomeHelper-Virtual-Box-image).
+Including workflows (see below) for analyzing 16S and shotgun metagenomic data. These workflows can be run on an [Ubuntu virtual box image](https://github.com/mlangill/microbiome_helper/wiki/MicrobiomeHelper-Virtual-Box-image) for those who don't want to set up their own environment.
 
 ## Table of contents:
 
