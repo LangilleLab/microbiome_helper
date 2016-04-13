@@ -12,7 +12,7 @@ Including workflows (see below) for analyzing 16S and shotgun metagenomic data. 
 * [Virtual Box image](https://github.com/mlangill/microbiome_helper/wiki/MicrobiomeHelper-Virtual-Box-image)
 
 ### Metagenomic resources
-   * [Metagenomic SOP](https://github.com/mlangill/microbiome_helper/wiki/Metagenomic-standard-operating-procedure)
+   * [Metagenomic standard operating procedure](https://github.com/mlangill/microbiome_helper/wiki/Metagenomic-standard-operating-procedure)
 
 **More detail on particular steps:**
    * [Stitch reads](https://github.com/mlangill/microbiome_helper/wiki/Stitch-reads)
@@ -22,7 +22,7 @@ Including workflows (see below) for analyzing 16S and shotgun metagenomic data. 
    * [Functional profiling](https://github.com/mlangill/microbiome_helper/wiki/Functional-profiling)
 
 ### 16S resources
-   * [16S SOP](https://github.com/mlangill/microbiome_helper/wiki/16S-standard-operating-procedure)
+   * [16S standard operating procedure](https://github.com/mlangill/microbiome_helper/wiki/16S-standard-operating-procedure)
    * [16S tutorial](https://github.com/mlangill/microbiome_helper/wiki/16S-tutorial)
 
 **More detail on particular steps:**
