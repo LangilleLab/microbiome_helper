@@ -38,7 +38,7 @@ Including workflows (see below) for analyzing 16S and shotgun metagenomic data, 
 
 ### Before getting started:
 
-* These workflows starts with raw paired-end MiSeq data in demultiplexed fastq format.
+* These workflows start with raw paired-end MiSeq data in demultiplexed fastq format.
 
 * Most of the commands allow parallel threads to be used with the -p option. Adjust according to your computer hardware abilities.
 
