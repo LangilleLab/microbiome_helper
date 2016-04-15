@@ -9,7 +9,7 @@ use Pod::Usage;
 
 my $help; 
 my $version_marker;
-my $version = "1.01";
+my $version = "1.02";
 
 my $quality = 0;
 my $percent = 0;
