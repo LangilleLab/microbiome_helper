@@ -82,6 +82,7 @@ my @files=@ARGV;
 pod2usage($0.': You must provide a list of fastq files to be filtered.') unless @files;
 
 my @cmds = ();
+my @rm_cmd = ();
 my @tmpLog = ();
 
 foreach my $path ( @files )	{
@@ -126,7 +127,6 @@ foreach my $path ( @files )	{
 	my $forwardPrimerCmd;
 	my $reversePrimerCmd;
 	my @tmp = ();
-	my @rm_cmd = ();
 
 	if ( $primer_check eq "both" )	{
 		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output_tmp3  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
