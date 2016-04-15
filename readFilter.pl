@@ -132,13 +132,13 @@ foreach my $path ( @files )	{
 		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output_tmp3  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		$reversePrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp3 outm=$output  restrictright=$r_l k=$r_l literal=$reverse mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , $reversePrimerCmd  );
-		@rm_cmd = ("rm $output_tmp1" , "rm $output_tmp2" , "rm $output_tmp3");
+		push ( @rm_cmd , ("rm $output_tmp1" , "rm $output_tmp2" , "rm $output_tmp3" ));
 
 	} elsif ( $primer_check eq "forward" )	{
 		
 		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd );
-		@rm_cmd = ("rm $output_tmp1" , "rm $output_tmp2");
+		push ( @rm_cmd , ("rm $output_tmp1" , "rm $output_tmp2")) ;
 	} 
 
 	push( @cmds , \@tmp );
