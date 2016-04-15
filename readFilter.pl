@@ -126,16 +126,19 @@ foreach my $path ( @files )	{
 	my $forwardPrimerCmd;
 	my $reversePrimerCmd;
 	my @tmp = ();
+	my @rm_cmd = ();
 
 	if ( $primer_check eq "both" )	{
 		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output_tmp3  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		$reversePrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp3 outm=$output  restrictright=$r_l k=$r_l literal=$reverse mm=f rcomp=f copyundefined 2>>$log_tmp_out";
-		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , $reversePrimerCmd , "rm $output_tmp1" , "rm $output_tmp2" , "rm $output_tmp3" );
+		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , $reversePrimerCmd  );
+		@rm_cmd = ("rm $output_tmp1" , "rm $output_tmp2" , "rm $output_tmp3");
 
 	} elsif ( $primer_check eq "forward" )	{
 		
 		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
-		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , "rm $output_tmp1" , "rm $output_tmp2" );
+		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd );
+		@rm_cmd = ("rm $output_tmp1" , "rm $output_tmp2");
 	} 
 
 	push( @cmds , \@tmp );
@@ -158,6 +161,11 @@ foreach my $cmds ( @cmds )	{
 	$pm->finish;
 }
 $pm->wait_all_children;
+
+foreach my $rm_cmd ( @rm_cmd )	{
+		print STDERR "running: $rm_cmd\n\n";
+		die if system( $rm_cmd );
+}
 
 ### parsing logfiles is not paralleled since writing to same file from mutliple jobs can screw up formatting
 open( 'LOG' , '>' , $log ) or die "cant create LOG $log\n";
