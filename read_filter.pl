@@ -329,7 +329,7 @@ B<read_filter.pl> This script automatically filters multiple fastqs by quality a
 
 The script allows the use of multiple threads. 
 
-By default, log output is written to "readFilter_log.txt".
+By default, log output is written to "read_filter_log.txt".
 
 bbmap is hard coded into this script, so this will have to changed on a different system (see "--bbmap" option). Also, FASTX-Toolkit needs to be installed and in the user's $PATH.
 
