@@ -15,7 +15,7 @@ my $version_marker;
 my $parallel;
 my $db ;
 my $out_dir = "non_chimeras";
-my $log = "chimeraFilter_log.txt";
+my $log = "chimera_filter_log.txt";
 my $type;
 my $mindiv = 1.5;
 my $minh = 0.2; 

@@ -24,7 +24,7 @@ my $reverse = "TTGYACWCACYGCCCGT";
 my $primer_check = "both";
 
 my $out_dir = "filtered_reads";
-my $log = "readFilter_log.txt";
+my $log = "read_filter_log.txt";
 
 my $bbmap_dir = "/usr/local/prg/bbmap";
 
