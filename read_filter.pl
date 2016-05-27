@@ -64,13 +64,13 @@ if ( $primer_check eq "both" )	{
 
 my $cpu_count=1;
 #if the option is set
-if(defined($parallel)){
+if( defined( $parallel ) ){
     #option is set but with no value then use the max number of proccessors
-    if($parallel ==0){
+    if( $parallel == 0 ){
 	#load this module dynamically
 	eval("use Sys::CPU;");
 	$cpu_count=Sys::CPU::cpu_count();
-    }else{
+    } else {
 	$cpu_count=$parallel;
     }
 }
@@ -254,12 +254,13 @@ read_filter.pl [-f <oligo> -r <oligo> -bbmap <directory> -log <logfile> -thread 
 
 Examples:
 
-# remove all reads that do not have a quality score of 30 at least 90% of bases. Then remove all reads that are less than 400bp long.
+
+# remove all reads that do not have a quality score of 30 at least 90% of bases. Then remove all reads that are less than 400 bp long.
 
 read_filter.pl -q 30 -p 90 -l 400 *.fastq
 
 
-# thread with 2 CPUs, remove all reads that do not have a quality score of 30 at least 90% of bases. Then remove all reads that are less than 400bp long.
+# thread with 2 CPUs, remove all reads that do not have a quality score of 30 at least 90% of bases. Then remove all reads that are less than 400 bp long.
 
 read_filter.pl -thread 2 -q 30 -p 90 -l 400 *.fastq
 
