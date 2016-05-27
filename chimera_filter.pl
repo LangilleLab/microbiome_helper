@@ -54,7 +54,7 @@ if(defined($parallel)){
 ### the "2>&1" syntax means output STDERR to same output as STDOUT (i.e. same output as file descripter 1).
 if ( index( `vsearch 2>&1` , "torognes/vsearch" ) == -1 )      { die "Stopping job, because \"vsearch\" is not in your path.\n";	} 	
 
-if ( ( ! defined $type ) or (  ( $type != 0 ) and ( $type != 1 ) ) )	{	die "output type \"-type\" needs to be either 1 (only clear non-chimeras) or 0 (any non-chimera, which includes those which are borderline)\n\nType \"chimeraFilter.pl -h\" for help.\n\n";	}
+if ( ( ! defined $type ) or (  ( $type != 0 ) and ( $type != 1 ) ) )	{	die "output type \"-type\" needs to be either 1 (only clear non-chimeras) or 0 (any non-chimera, which includes those which are borderline)\n\nType \"chimera_filter.pl -h\" for help.\n\n";	}
 
 my @files = @ARGV;
 pod2usage($0.': You must provide a list of fasta files to be filtered.') unless @files;
@@ -153,12 +153,12 @@ system( "rm tmp_vsearch_out.txt" );
 
 =head1 Name
 
-chimeraFilter.pl - wrapper to filter out chimeric reads from fasta files (with vsearch, which uses the uchime algorithm).
+chimera_filter.pl - wrapper to filter out chimeric reads from fasta files (with vsearch, which uses the uchime algorithm).
 
 
 =head1 USAGE
 
-chimeraFilter.pl [-log <logfile> -thread <#_CPU_to_use> -o <out_dir> -minh <minimum chimera score> -mindiv <minimum divergence> -h -v --keep]  -type <0 or 1> -db <FASTA> <list of FASTA files>
+chimera_filter.pl [-log <logfile> -thread <#_CPU_to_use> -o <out_dir> -minh <minimum chimera score> -mindiv <minimum divergence> -h -v --keep]  -type <0 or 1> -db <FASTA> <list of FASTA files>
 
 
 NOTE: the "vsearch" binary needs to be in your PATH.
