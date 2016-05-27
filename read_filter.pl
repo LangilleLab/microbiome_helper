@@ -47,7 +47,7 @@ pod2usage(-verbose=>2) if $help;
 if ( $version_marker )	{	print "version $version\n";	exit	}
 
 if ( ( $quality == 0 ) or ( $percent == 0 ) or ( $length == 0 ) )	{
-	die "min_quality, percent and min_length are required parameters that need non-zero interger values\nfor help type:	 perl readFilter.pl -h\n";
+	die "min_quality, percent and min_length are required parameters that need non-zero interger values\nfor help type:	 perl read_filter.pl -h\n";
 }
 
 if ( ! -e "$bbmap_dir/bbduk.sh" )	{	die "$bbmap_dir/bbduk.sh does not exists, you may need to set the --bmap (-b) flag\n";	}
@@ -245,28 +245,28 @@ __END__
 
 =head1 Name
 
-readFilter.pl - wrapper to filter reads by quality with fastx and then by total length with bbmap. Reads without matches to the forward and reverse primers are then removed with bbmap. 
+read_filter.pl - wrapper to filter reads by quality with fastx and then by total length with bbmap. Reads without matches to the forward and reverse primers are then removed with bbmap. 
 
 =head1 USAGE
 
-readFilter.pl [-f <oligo> -r <oligo> -bbmap <directory> -log <logfile> -thread <#_CPU_to_use> -o <out_dir> -pc <both|forward> -h] -q <min_quality> -p <min_percent_sites_with_q> -l <min_length>  <list of fastq files>
+read_filter.pl [-f <oligo> -r <oligo> -bbmap <directory> -log <logfile> -thread <#_CPU_to_use> -o <out_dir> -pc <both|forward> -h] -q <min_quality> -p <min_percent_sites_with_q> -l <min_length>  <list of fastq files>
 
 
 Examples:
 
 # remove all reads that do not have a quality score of 30 at least 90% of bases. Then remove all reads that are less than 400bp long.
 
-readFilter.pl -q 30 -p 90 -l 400 *.fastq
+read_filter.pl -q 30 -p 90 -l 400 *.fastq
 
 
 # thread with 2 CPUs, remove all reads that do not have a quality score of 30 at least 90% of bases. Then remove all reads that are less than 400bp long.
 
-readFilter.pl -thread 2 -q 30 -p 90 -l 400 *.fastq
+read_filter.pl -thread 2 -q 30 -p 90 -l 400 *.fastq
 
 
 # thread on all available CPUs, output into "filtered_reads", write log output to "filtered.log", min quality of 20, min percentage of bases with that quality of 90%, min length of 350 bases.
 
-readFilter.pl -thread -o filtered_reads -log filtered.log -q 20 -p 80 -l 350 *.fastq
+read_filter.pl -thread -o filtered_reads -log filtered.log -q 20 -p 80 -l 350 *.fastq
 
 
 =head1 OPTIONS
@@ -291,7 +291,7 @@ Using this option without a value will use all CPUs on machine, while giving it 
 
 =item B<-log <file>>
 
-The location to write the log file.
+The location to write the log file. Default is "read_filter.log".
  
 =item B<-q, --min_quality <int>>
 
@@ -325,7 +325,7 @@ either "both" or "forward", indicating whether to check both forward (5') and re
 
 =head1 DESCRIPTION
 
-B<readFilter.pl> This script automatically filters multiple fastqs by quality and length.
+B<read_filter.pl> This script automatically filters multiple fastqs by quality and length.
 
 The script allows the use of multiple threads. 
 
