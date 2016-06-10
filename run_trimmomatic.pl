@@ -56,7 +56,7 @@ pod2usage(-verbose=>2) if $help;
 
 if ( $version_marker )	{	print "version $version\n";	exit	}
 
-if ( ! -e $trimmomatic_jar )	{	die "$trimmomatic_jar does not exists, you may need to set the --jar flag\n";	}
+if ( ! -e $trimmomatic_jar )	{	die "$trimmomatic_jar does not exist, you may need to set the --jar flag\n";	}
 
 if ( ( $delimiter ne "_" ) and ( $delimiter ne "." ) )	{	die "delimiter $delimiter needs to be \"_\" or \".\"\n";	}
 
