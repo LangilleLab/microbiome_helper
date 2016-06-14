@@ -49,13 +49,13 @@ if(defined($parallel)){
 my %paired_files;
 foreach my $file (@files){
     my ($file_name,$dir)=fileparse($file);
-    if($file_name =~ /(.+)_R([1|2])_/){
+    if($file_name =~ /(.+)_R([1|2])[_|\.]/){
 	$paired_files{$1}[$2-1]=$file;
     #attempt different naming scheme
     }elsif($file_name =~ /(.+)_([1|2])/){
 	$paired_files{$1}[$2-1]=$file;
     }else{
-	warn "Input file does not contain '_R1_' or '_R2_' in name: $file";
+	warn "Input file does not contain '_R1_' or '_R2_' (or alternatively '_R1.' or '_R2.') in name: $file";
     }
 }
 
@@ -153,7 +153,7 @@ run_pear.pl [-p [<# proc>] -o <out_dir> -h] <list of fastq files>
 
 E.g.
 
-#Note: Files must have "_R1_" and "_R2_" within the file name (or secondarily "_1" and "_2")
+#Note: Files must have "_R1_" and "_R2_" (or "_R1." and "_R2.")  within the file name (or secondarily "_1" and "_2")
 
 run_pear.pl sample1_R1_001.fastq sample1_R2_001.fastq sample2_R1_001.fastq sample2_R2_001.fastq
 
@@ -209,7 +209,7 @@ Displays the entire help documentation.
 
 =head1 DESCRIPTION
 
-B<run_pear.pl> This script allows for more automated running of the PEAR program on multiple fastq files. PEAR is used to stitch (or assemble) paired end reads together. The assumption is made that the paired end files have the same name with the forward reads being indicated by "_R1_" and the reverse being "_R2_". If file names are not found matching these then an simpler label is attempted ("_1" and "_2"). 
+B<run_pear.pl> This script allows for more automated running of the PEAR program on multiple fastq files. PEAR is used to stitch (or assemble) paired end reads together. The assumption is made that the paired end files have the same name with the forward reads being indicated by "_R1_" and the reverse being "_R2_" (they can also be "_R1." and "_R2."). If file names are not found matching these then an simpler label is attempted ("_1" and "_2"). 
 
 The script allows the use of multiple threads. 
 
