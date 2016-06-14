@@ -263,7 +263,7 @@ Examples:
 
 run_trimmomatic.pl *.fastq
 
-# Trim leading and trailing reads that have qualities less than 5 (-l and -t options), cut at windows of size 4 (-w option) that have an average quality less than 15 (-r option) and throw out reads that are less than 70 nucleotides after trimming (-m option). Run trimmomatic with the specified jarfile (-j option) using 20 CPUs (--thread option) and overwrite previous output files (-f option):
+# Trim leading and trailing bases that have qualities less than 5 (-l and -t options), cut at windows of size 4 (-w option) that have an average quality less than 15 (-r option) and throw out reads that are less than 70 nucleotides after trimming (-m option). Run trimmomatic with the specified jarfile (-j option) using 20 CPUs (--thread option) and overwrite previous output files (-f option):
 
 run_trimmomatic.pl -l 5 -t 5 -r 15 -w 4 -m 70 -j /usr/local/prg/Trimmomatic-0.36/trimmomatic-0.36.jar -f --thread 20 *.fastq
 
