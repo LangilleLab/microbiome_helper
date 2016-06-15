@@ -44,7 +44,7 @@ system("mkdir -p $out_dir");
 my %paired_files;
 foreach my $file (@files){
     my ($file_name,$dir,$suffix)=fileparse($file,qr/(\.fasta|\.fastq)\.?[^.]*/);
-    if($file_name =~ /(.+)_L00([\d])(_R[1|2])_/){
+    if($file_name =~ /(.+)_L00([\d])(_R[1|2])[\._]/){
 	my $name=$1;
 	my $lane=$2;
 	my $paired_end=$3;

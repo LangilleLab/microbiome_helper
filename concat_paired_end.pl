@@ -44,13 +44,17 @@ system("mkdir -p $out_dir");
 my %paired_files;
 foreach my $file (@files){
     my ($file_name,$dir,$suffix)=fileparse($file,qr/(\.fasta|\.fastq)\.[^.]*/);
-    if($file_name =~ /(.+)_R([1|2])_/){
+    if($file_name =~ /(.+)_R([1|2])[\._]/){
 	$paired_files{$1.$suffix}[$2-1]=$file;
-    #attempt different naming scheme
-    }elsif($file_name =~ /(.+)_([1|2])/){
-	$paired_files{$1.$suffix}[$2-1]=$file;
+
+### removed since fastqs often have "_1" and "_2" in ID 
+###    #attempt different naming scheme
+###    }elsif($file_name =~ /(.+)_([1|2])/){
+####	$paired_files{$1.$suffix}[$2-1]=$file;
+
     }else{
-	warn "Input file does not contain '_R1_'and '_R2_' or '_1' and '_2' in name: $file";
+###	warn "Input file does not contain '_R1_'and '_R2_' or '_1' and '_2' in name: $file";
+	warn "Input file does not contain '_R1_'and '_R2_' (or '_R1.' and '_R2.' in name: $file";
     }
 }
 
@@ -82,7 +86,7 @@ concat_paired_end.pl [-p [<# proc>] -h] -o <out_dir> <list of paired end files>
 
 E.g.
 
-#Note: Files must have "_R1_" and "_R2_" within the file name (or secondarily "_1" and "_2")
+#Note: Files must have "_R1_" and "_R2_" within the file name (or secondarily "_R1." and "_R2.")
 
 concat_paired_end.pl sample1_R1_001.fastq sample1_R2_001.fastq sample2_R1_001.fastq sample2_R2_001.fastq
 
