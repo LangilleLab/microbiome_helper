@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+.#!/usr/bin/perl
 
 use warnings;
 use strict;
@@ -179,15 +179,15 @@ sub fastqs2sample {
 			### only 1 fastq for this sample, assuming it's SE and moving on.
 		} elsif ( $num_fastq == 2 )	{
 			++$pe_marker;
-			### assuming this sample has 2 fastqs because they are PE, check that either "_1" or "_R1_" or "forward" is in one filename and "_2" or "_R2_" or "reverse" is in the other's filename
-			if ( ( basename($f[0]) =~ m/_1|_R1_|forward/ ) and ( basename($f[1]) =~ m/_2|_R2_|reverse/ ) ) {
+			### assuming this sample has 2 fastqs because they are PE, check that either "_R1." or "_R1_" or "forward" is in one filename and "_R2." or "_R2_" or "reverse" is in the other's filename
+			if ( ( basename($f[0]) =~ m/_R1\.|_R1_|forward/ ) and ( basename($f[1]) =~ m/_R2\.|_R2_|reverse/ ) ) {
 				### the filenames seem to be PE reads and already ordered as forward and reverse, so continue
-			} elsif ( ( basename($f[1]) =~ m/_1|_R1_|forward/ ) and ( basename($f[0]) =~ m/_2|_R2_|reverse/ ) ) 	{
+			} elsif ( ( basename($f[1]) =~ m/_R1\.|_R1_|forward/ ) and ( basename($f[0]) =~ m/_R2\.|_R2_|reverse/ ) ) 	{
 				### filenames are PE, but reorder so they are forward and reverse
 				my @tmp = ($f[1] , $f[0] );
 				@{$s2f{$s}} = \@tmp;
 			} else {
-				die "the 2 fastqs for sample $s don't have PE read ids in their names, are you sure these are PE reads? They need _1 and _2 (or either _R1_ and _R2_ or forward and reverse) in their names. The filenames are: @f\n";
+				die "the 2 fastqs for sample $s don't have PE read ids in their names, are you sure these are PE reads? They need _R1. and _R2. (or either _R1_ and _R2_ or forward and reverse) in their names. The filenames are: @f\n";
 			}
 		} elsif ( ($num_fastq < 1 ) or ( $num_fastq > 2 ) )	{
 			die "$num_fastq fastqs for sample $s. This script assumed that fastq prefixes (when delimited by \"$delimiter\") are sample IDs, check your filenames\n";
@@ -255,7 +255,7 @@ run_trimmomatic.pl - wrapper to trim reads with Trimmomatic.
 
 run_trimmomatic.pl  [-l <int> -t <int> -r <int> -w <int> -m <int> --jar <Path to Trimmomatic jarfile> --log <logfile> --thread <#_CPU_to_use> -o <out_dir> -h -v] <list of fastq files>
 
-Note: all fastq files containing "forward", "reverse", "_1", "_R1_", "_2" or "_R2_" will be interpreted as paired-end reads, otherwise they will be assumed to be single ended. The sample ID is also assumed to be the prefix of each filename when delimited by "_".
+Note: all fastq files containing "forward", "reverse", "_R1.", "_R1_", "_R2." or "_R2_" will be interpreted as paired-end reads, otherwise they will be assumed to be single ended. The sample ID is also assumed to be the prefix of each filename when delimited by "_".
 
 Examples:
 
@@ -338,7 +338,7 @@ The script allows the use of multiple threads.
 
 By default, log output is written to "trimmomatic_tabular_log.txt".
 
-As stated above, note that all fastq files containing "forward" , "_1", "_R1_", "reverse", "_2" or "_R2_" will be interpreted as paired-end reads, otherwise they will be assumed to be single ended. 
+As stated above, note that all fastq files containing "forward" , "_R1.", "_R1_", "reverse", "_R2." or "_R2_" will be interpreted as paired-end reads, otherwise they will be assumed to be single ended. 
 
 Also, the sample ID is assumed to be the first field of each filename when delimited by "_".
 
