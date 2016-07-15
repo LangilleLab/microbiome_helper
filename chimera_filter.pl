@@ -56,9 +56,11 @@ if ( index( `vsearch 2>&1` , "torognes/vsearch" ) == -1 )      { die "Stopping j
 
 if ( ( ! defined $type ) or (  ( $type != 0 ) and ( $type != 1 ) ) )	{	die "output type \"-type\" needs to be either 1 (only clear non-chimeras) or 0 (any non-chimera, which includes those which are borderline)\n\nType \"chimera_filter.pl -h\" for help.\n\n";	}
 
+if ( ! defined $db )	{	die "need database file\n";	}
+if ( ! -e $db )	{ die "specified database $db does not exist\n";	}
+
 my @files = @ARGV;
 pod2usage($0.': You must provide a list of fasta files to be filtered.') unless @files;
-if ( ! defined $db )	{	die "need database file\n";	}
 
 system( "mkdir -p $out_dir");
 
