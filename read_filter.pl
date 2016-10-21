@@ -9,19 +9,20 @@ use Pod::Usage;
 
 my $help; 
 my $version_marker;
-my $version = "1.02";
+my $version = "1.03";
 
 my $quality = 0;
 my $percent = 0;
 my $length = 0;
 my $parallel;
+my $keep;
 
 my $forward = "ACGCGHNRAACCTTACC";
 my $reverse = "TTGYACWCACYGCCCGT";
 ### (note that the above is the reverse complement of the below primer)
 ### my $reverse = "ACGGGCRGTGWGTRCAA";
 
-my $primer_check = "both";
+my $primer_check = "none";
 
 my $out_dir = "filtered_reads";
 my $log = "read_filter_log.txt";
@@ -38,8 +39,9 @@ my $res = GetOptions("out_dir|o=s" => \$out_dir,
 		     "forward|f=s" => \$forward,
 		     "reverse|r=s" => \$reverse,
 		     "bbmap|b=s" => \$bbmap_dir,
-		     "primer_check|pc=s" => \$primer_check,
+		     "primer_check|c=s" => \$primer_check,
 		     "version|v" => \$version_marker,
+		     "keep" => \$keep,
 	  )	or pod2usage(2);
 
 pod2usage(-verbose=>2) if $help;
@@ -54,10 +56,12 @@ if ( ! -e "$bbmap_dir/bbduk.sh" )	{	die "$bbmap_dir/bbduk.sh does not exists, yo
 
 if ( index( `fastq_quality_filter -h` , "FASTX"  ) == -1 )	{	die "fastq_quality_filter is not in your path\n";	}
 
-if ( $primer_check eq "both" )	{
-	print STDERR "checking for forward (5') primer $forward and reverse (3') primer $reverse\n";
+if ( $primer_check eq "none" )	{
+	print STDERR "--primer_check set to \"none\", so not checking whether primer sequences are present\n";
+} elsif ( $primer_check eq "both" )	{
+	print STDERR "--primer_check set to \"both\", so checking for forward (5') primer $forward and reverse (3') primer $reverse. You can change the primer sequences to scan for with the --forward and --reverse options.\n";
 } elsif ( $primer_check eq "forward" )	{
-	print STDERR "checking for forward (5') primer $forward only\n";
+	print STDERR "--primer_check set to \"forward\", so checking for forward (5') primer $forward only. You can change the primer sequence to scan for with the --forward option.\n";
 } else {
 	die "--primer_check option needs to be either \"both\" or \"forward\" (default: both), the current setting of \"$primer_check\" is invalid.\n";
 }
@@ -128,7 +132,15 @@ foreach my $path ( @files )	{
 	my $reversePrimerCmd;
 	my @tmp = ();
 
-	if ( $primer_check eq "both" )	{
+	
+	if ( $primer_check eq "none" )	{
+	
+		$lFilterCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp1 outu=$output minlength=$length 2>>$log_tmp_out";
+		
+		@tmp = ( $qFilterCmd , $lFilterCmd  );
+		push ( @rm_cmd , ("rm $output_tmp1" ));
+	
+	} elsif ( $primer_check eq "both" )	{
 		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output_tmp3  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		$reversePrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp3 outm=$output  restrictright=$r_l k=$r_l literal=$reverse mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , $reversePrimerCmd  );
@@ -162,9 +174,11 @@ foreach my $cmds ( @cmds )	{
 }
 $pm->wait_all_children;
 
-foreach my $rm_cmd ( @rm_cmd )	{
-		print STDERR "running: $rm_cmd\n\n";
-		die if system( $rm_cmd );
+if ( ! $keep )	{
+	foreach my $rm_cmd ( @rm_cmd )	{
+			print STDERR "running: $rm_cmd\n\n";
+			die if system( $rm_cmd );
+	}
 }
 
 ### parsing logfiles is not paralleled since writing to same file from mutliple jobs can screw up formatting
@@ -213,18 +227,37 @@ sub add2log	{
 	
 	my $initial = $inCount[0];
 	my $qFiltered = $inCount[0] - $inCount[1];
-	my $lFiltered = $inCount[1] - $inCount[2];
-	my $forwardFiltered = $inCount[2] - $outCount[2];
+	my $lFiltered = $inCount[1] - $outCount[1];
+	
+	my $forwardFiltered;
+	my $forwardPercent;
 	
 	my $reverseFiltered;
-	my $final;
 	my $reversePercent;
 	
-	if ( $primer_check eq "both" )	{
+	my $final;
+	
+	if ( $primer_check eq "none" )	{
+	
+		$forwardFiltered = "NA";
+		$forwardPercent = "NA";
+		
+		$reverseFiltered = "NA";
+		$reversePercent = "NA";
+
+		$final = $outCount[1];
+
+	} elsif ( $primer_check eq "both" )	{
+		$forwardFiltered = $inCount[2] - $outCount[2];
+		$forwardPercent = sprintf( "%.1f" , ($forwardFiltered / $initial)*100  );
+		
 		$reverseFiltered = $inCount[3] - $outCount[3];
 		$final = $outCount[3];
 		$reversePercent = sprintf( "%.1f" , ($reverseFiltered / $initial)*100  );
 	} elsif ( $primer_check eq "forward" )	{
+		$forwardFiltered = $inCount[2] - $outCount[2];
+		$forwardPercent = sprintf( "%.1f" , ($forwardFiltered / $initial)*100  );
+		
 		$reverseFiltered = "NA";
 		$final = $outCount[2];
 		$reversePercent = "NA";
@@ -233,12 +266,14 @@ sub add2log	{
 	### note that percents are all based on initial count!
 	my $qPercent = sprintf( "%.1f" , ($qFiltered / $initial)*100  );
 	my $lPercent = sprintf( "%.1f" , ($lFiltered / $initial)*100  );
-	my $forwardPercent = sprintf( "%.1f" , ($forwardFiltered / $initial)*100  );
+
 	my $finalPercent = sprintf( "%.1f" , ($final / $initial)*100 );
 	
 	print LOG "$name	$initial	$qFiltered	$lFiltered	$forwardFiltered	$reverseFiltered	$final	$qPercent	$lPercent	$forwardPercent	$reversePercent	$finalPercent\n";
 
-	system( "rm $tmp" );
+	if ( ! $keep )	{
+		system( "rm $tmp" );
+	}
 }
 
 __END__
@@ -318,9 +353,13 @@ Reverse primer to match at end of all reads (IUPAC format, default: TTGYACWCACYG
 
 bbmap directory containing sh files (default: /usr/local/prg/bbmap). 
 
-=item B<-pc, --primer_check <[both|forward]>>
+=item B<-c, --primer_check <[both|forward]>>
 
-either "both" or "forward", indicating whether to check both forward (5') and reverse (3') primer sequences or only the forward primer respectively (default: both).
+either "none", "both" or "forward", indicating whether not to check for primer sequences, to check both forward (5') and reverse (3') primer sequences or only the forward primer respectively (default: none).
+
+=item B<--keep>>
+
+Flag to indicate that temporary files should not be deleted. Useful for troubleshooting.
 
 =back
 
