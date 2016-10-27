@@ -9,7 +9,7 @@ use Pod::Usage;
 
 my $help; 
 my $version_marker;
-my $version = "1.03";
+my $version = "2.0";
 
 my $quality = 0;
 my $percent = 0;
@@ -23,6 +23,7 @@ my $reverse = "TTGYACWCACYGCCCGT";
 ### my $reverse = "ACGGGCRGTGWGTRCAA";
 
 my $primer_check = "none";
+my $primer_trim;
 
 my $out_dir = "filtered_reads";
 my $log = "read_filter_log.txt";
@@ -40,6 +41,7 @@ my $res = GetOptions("out_dir|o=s" => \$out_dir,
 		     "reverse|r=s" => \$reverse,
 		     "bbmap|b=s" => \$bbmap_dir,
 		     "primer_check|c=s" => \$primer_check,
+		     "primer_trim|t" => \$primer_trim,
 		     "version|v" => \$version_marker,
 		     "keep" => \$keep,
 	  )	or pod2usage(2);
@@ -65,6 +67,8 @@ if ( $primer_check eq "none" )	{
 } else {
 	die "--primer_check option needs to be either \"both\" or \"forward\" (default: both), the current setting of \"$primer_check\" is invalid.\n";
 }
+
+if ( ( $primer_trim ) and ( $primer_check eq "none" ) )	{	die "Primer trim option set, but primer check option not set so killing job\n"	}
 
 my $cpu_count=1;
 #if the option is set
@@ -106,10 +110,12 @@ foreach my $path ( @files )	{
 	my $outfile_tmp1 = $outfile;
 	my $outfile_tmp2 = $outfile;
 	my $outfile_tmp3 = $outfile;
+	my $outfile_tmp4 = $outfile;
 
 	$outfile_tmp1 =~ s/\.$ext$/_TMP1.$ext/;
 	$outfile_tmp2 =~ s/\.$ext$/_TMP2.$ext/;
 	$outfile_tmp3 =~ s/\.$ext$/_TMP3.$ext/;	
+	$outfile_tmp4 =~ s/\.$ext$/_TMP4.$ext/;	
 
 	my $log_tmp = $outfile;
 	$log_tmp =~ s/\.$ext$/_TMP_LOG.txt/;
@@ -118,6 +124,8 @@ foreach my $path ( @files )	{
 	my $output_tmp1 = $out_dir . "/" . $outfile_tmp1;
 	my $output_tmp2 = $out_dir . "/" . $outfile_tmp2;
 	my $output_tmp3 = $out_dir . "/" . $outfile_tmp3;
+	my $output_tmp4 = $out_dir . "/" . $outfile_tmp4;
+
 	my $log_tmp_out = $out_dir ."/" . $log_tmp;
 
 	if ( -e $output )	{	die "output file $output already exists\n";	}
@@ -131,7 +139,9 @@ foreach my $path ( @files )	{
 	my $forwardPrimerCmd;
 	my $reversePrimerCmd;
 	my @tmp = ();
-
+	
+	my $trim_input = "";
+	my $trim_options = "";
 	
 	if ( $primer_check eq "none" )	{
 	
@@ -141,18 +151,50 @@ foreach my $path ( @files )	{
 		push ( @rm_cmd , ("rm $output_tmp1" ));
 	
 	} elsif ( $primer_check eq "both" )	{
+	
+		my $reverse_output;
+		
+		if ( $primer_trim )	{
+			$reverse_output = $output_tmp4;
+		} else {
+			$reverse_output = $output;
+		}
+		
+		$trim_input = $reverse_output;
+		$trim_options = "forcetrimleft=$f_l forcetrimright2=$r_l";
+	
 		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output_tmp3  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
-		$reversePrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp3 outm=$output  restrictright=$r_l k=$r_l literal=$reverse mm=f rcomp=f copyundefined 2>>$log_tmp_out";
+		$reversePrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp3 outm=$reverse_output  restrictright=$r_l k=$r_l literal=$reverse mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd , $reversePrimerCmd  );
 		push ( @rm_cmd , ("rm $output_tmp1" , "rm $output_tmp2" , "rm $output_tmp3" ));
 
 	} elsif ( $primer_check eq "forward" )	{
 		
-		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$output  restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
+		my $forward_output;
+		
+		if ( $primer_trim )	{
+			$forward_output = $output_tmp4;
+		} else {
+			$forward_output = $output;
+		}
+		
+		$trim_input = $forward_output;
+		$trim_options = "forcetrimleft=$f_l";
+		
+		$forwardPrimerCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$output_tmp2 outm=$forward_output restrictleft=$f_l k=$f_l literal=$forward mm=f rcomp=f copyundefined 2>>$log_tmp_out";
 		@tmp = ( $qFilterCmd , $lFilterCmd , $forwardPrimerCmd );
 		push ( @rm_cmd , ("rm $output_tmp1" , "rm $output_tmp2")) ;
+		
 	} 
-
+	
+	if ( $primer_trim )	{
+	
+		my $primerTrimCmd = "$bbmap_dir/bbduk.sh -Xmx1g in=$trim_input out=$output $trim_options 2>>$log_tmp_out";
+		
+		push( @tmp , $primerTrimCmd );
+		push( @rm_cmd, "rm $trim_input" );
+	}
+	
 	push( @cmds , \@tmp );
 
 	push( @tmpLog , "$log_tmp_out,$file" );
@@ -284,7 +326,7 @@ read_filter.pl - wrapper to filter reads by quality with fastx and then by total
 
 =head1 USAGE
 
-read_filter.pl [-f <oligo> -r <oligo> -bbmap <directory> -log <logfile> -thread <#_CPU_to_use> -o <out_dir> -pc <both|forward> -h] -q <min_quality> -p <min_percent_sites_with_q> -l <min_length>  <list of fastq files>
+read_filter.pl [-f <oligo> -r <oligo> -bbmap <directory> -log <logfile> -thread <#_CPU_to_use> -o <out_dir> -c <both|forward> -h --keep -t] -q <min_quality> -p <min_percent_sites_with_q> -l <min_length>  <list of fastq files>
 
 
 Examples:
@@ -321,11 +363,11 @@ Displays script version and exits.
 
 Output directory for filtered fastq files. Default is "filtered_reads".
 
-=item B<-thread <# of CPUs>>
+=item B<--thread <# of CPUs>>
 
 Using this option without a value will use all CPUs on machine, while giving it a value will limit to that many CPUs. Without option only one CPU is used. 
 
-=item B<-log <file>>
+=item B<--log <file>>
 
 The location to write the log file. Default is "read_filter.log".
  
@@ -357,6 +399,10 @@ bbmap directory containing sh files (default: /usr/local/prg/bbmap).
 
 either "none", "both" or "forward", indicating whether not to check for primer sequences, to check both forward (5') and reverse (3') primer sequences or only the forward primer respectively (default: none).
 
+=item B<-t, --primer_trim>
+
+Flag to indicate that matched primers should also be trimmed off before writing filtered FASTAs. Not set by default (i.e. no trimming).  
+
 =item B<--keep>>
 
 Flag to indicate that temporary files should not be deleted. Useful for troubleshooting.
@@ -371,7 +417,7 @@ The script allows the use of multiple threads.
 
 By default, log output is written to "read_filter_log.txt".
 
-bbmap is hard coded into this script, so this will have to changed on a different system (see "--bbmap" option). Also, FASTX-Toolkit needs to be installed and in the user's $PATH.
+bbmap is hard coded into this script, so this will have to changed on a different system (see "--bbmap" option). Also, FASTX-Toolkit needs to be installed and be in the user's $PATH.
 
 
 # software websites:
