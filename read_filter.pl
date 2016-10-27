@@ -9,7 +9,7 @@ use Pod::Usage;
 
 my $help; 
 my $version_marker;
-my $version = "2.0";
+my $version = "2.0.1";
 
 my $quality = 0;
 my $percent = 0;
@@ -173,7 +173,7 @@ foreach my $path ( @files )	{
 		my $forward_output;
 		
 		if ( $primer_trim )	{
-			$forward_output = $output_tmp4;
+			$forward_output = $output_tmp3;
 		} else {
 			$forward_output = $output;
 		}
