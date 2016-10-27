@@ -9,7 +9,7 @@ use Pod::Usage;
 
 my $help; 
 my $version_marker;
-my $version = "2.0.1";
+my $version = "2.0.2";
 
 my $quality = 0;
 my $percent = 0;
@@ -401,9 +401,9 @@ either "none", "both" or "forward", indicating whether not to check for primer s
 
 =item B<-t, --primer_trim>
 
-Flag to indicate that matched primers should also be trimmed off before writing filtered FASTAs. Not set by default (i.e. no trimming).  
+Flag to indicate that matched primers should also be trimmed off before writing filtered FASTQs. Not set by default (i.e. no trimming).  
 
-=item B<--keep>>
+=item B<--keep>
 
 Flag to indicate that temporary files should not be deleted. Useful for troubleshooting.
 
