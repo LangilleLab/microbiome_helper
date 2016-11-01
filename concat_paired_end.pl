@@ -43,8 +43,8 @@ system("mkdir -p $out_dir");
 
 my %paired_files;
 foreach my $file (@files){
-    my ($file_name,$dir,$suffix)=fileparse($file,qr/(\.fasta|\.fastq)\.[^.]*/);
-    if($file_name =~ /(.+)_R([1|2])[\._]/){
+    my ($file_name,$dir,$suffix)=fileparse($file,qr/(\.fasta|\.fastq)\.*[^.]*/);
+    if($file_name =~ /(.+)_R([1|2])[\.|_]*/){
 	$paired_files{$1.$suffix}[$2-1]=$file;
 
 ### removed since fastqs often have "_1" and "_2" in ID 
@@ -54,7 +54,7 @@ foreach my $file (@files){
 
     }else{
 ###	warn "Input file does not contain '_R1_'and '_R2_' or '_1' and '_2' in name: $file";
-	warn "Input file does not contain '_R1_'and '_R2_' (or '_R1.' and '_R2.' in name: $file";
+	warn "Input file does not contain '_R1_'and '_R2_' (or '_R1[.]' and '_R2[.]' in name: $file";
     }
 }
 
