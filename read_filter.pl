@@ -395,7 +395,7 @@ Reverse primer to match at end of all reads (IUPAC format, default: TTGYACWCACYG
 
 bbmap directory containing sh files (default: /usr/local/prg/bbmap). 
 
-=item B<-c, --primer_check <[both|forward]>>
+=item B<-c, --primer_check <[none|both|forward]>>
 
 either "none", "both" or "forward", indicating whether not to check for primer sequences, to check both forward (5') and reverse (3') primer sequences or only the forward primer respectively (default: none).
 
