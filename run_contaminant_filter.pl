@@ -104,19 +104,19 @@ print LOG "sample	input	aligned	percent_removed\n";
 
 foreach my $l ( @log_files )	{
 
-	my $total;
-	my $aligned;
-	my $percent;
+	my $total = 0;
+	my $aligned = 0;
+	my $percent = 0;
 
 	open( 'TMP' , '<' , $l ) or die "cant open individual log file $l\n";
 	while( <TMP> )	{
 		
 		if ( $_ =~ m/(\d+) reads; of these:/ )	{
 			$total = $1;
-		} elsif ( $_ =~ m/(\d+) .+ aligned 0 times:/ )	{
-			$aligned += $1;
 		} elsif ( $_ =~ m/(\d+) .+ aligned exactly 1 time/ ) {
 			$aligned += $1;
+		} elsif ( $_ =~ m/(\d+) .+ aligned >1 times/ )  {
+			$aligned += $1
 		} elsif ( $_ =~ m/(\S+) overall alignment rate/ )	{
 			$percent = $1;
 		} else {}		
@@ -218,7 +218,7 @@ B<run_contaminant_filter.pl> This is a wrapper script for running bowtie2 to scr
 
 Morgan Langille, E<lt>morgan.g.i.langille@gmail.comE<gt>
 
-Last updated 10/05/2016 by Gavin Douglas  E<lt>gavin.douglas@dal.caE<gt>
+Last updated 14 Dec 2016 by Gavin Douglas  E<lt>gavin.douglas@dal.caE<gt>
 
 =cut
 
