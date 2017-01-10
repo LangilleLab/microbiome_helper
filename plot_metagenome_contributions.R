@@ -26,7 +26,7 @@ option_list <- list(
 
 		  make_option( c(  "--min_OTU_contrib" ) , type="numeric" , default=0 ,
 			  help = "Rows in input table with a value of CountContributedByOTU less than this value will be removed [default = %default]" ,
-			  metavar = "string" ) ,
+			  metavar = "number" ) ,
 
 		  make_option( c( "--rel_abundance" ) , action = "store_true" , type="logical" , default=FALSE , 
 		  	  help = "Flag to indicate that relative abundances should be plotted [default = %default]" ) ,
