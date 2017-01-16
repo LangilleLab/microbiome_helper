@@ -5,7 +5,7 @@ An assortment of scripts to help process and automate various microbiome and met
 
 Our paper on Microbiome Helper has been [published in mSystems](http://msystems.asm.org/content/2/1/e00127-16). Please cite this paper if you use our repository:  
 
-    Comeau AM, Douglas GM, Langille MGI. 2017. mSystems 2(1): e00127-16; DOI: 10.1128/mSystems.00127-16    
+    Comeau AM, Douglas GM, Langille MGI. 2017. Microbiome Helper: a Custom and Streamlined Workflow for Microbiome Research. mSystems 2(1): e00127-16; DOI: 10.1128/mSystems.00127-16    
   
 Please see our [wiki site](https://github.com/mlangill/microbiome_helper/wiki) for more info.
 
