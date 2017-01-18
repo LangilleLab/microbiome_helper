@@ -55,34 +55,11 @@ __END__
 
 =head1 Name
 
-run_pear.pl - A simple wrapper for PEAR to stich paired-end reads
+run_fastq_to_fasta.pl - A wrapper of the FASTX toolkit command "fastq_to_fasta"
 
 =head1 USAGE
 
-run_pear.pl [-p [<# proc>] -o <out_dir> -h] <list of fastq files>
-
-E.g.
-
-#Note: files must have "_R1_" and "_R2_" within the file name
-
-run_pear.pl sample1_R1_001.fastq sample1_R2_001.fastq sample2_R1_001.fastq sample2_R2_001.fastq
-
-#Shorter way to do the same thing
-
-run_pear.pl *.fastq
-
-#Specify alternate location for output files (instead of default current directory)
-
-run_pear.pl -o stitched_reads *.fastq
-
-#Run in parallel and use all CPUs
-
-run_pear.pl *.fastq -p
-
-#Run in parallel limit to only 2 CPUs
-
-run_pear.pl *.fastq -p 2
-
+run_fastq_to_fasta [-p [<# proc>] -o <out_dir> -h] <list of fastq files>
 
 =head1 OPTIONS
 
@@ -90,7 +67,7 @@ run_pear.pl *.fastq -p 2
 
 =item B<-o, --out_dir <file>>
 
-The name of the output directory to place all PEAR output files.
+The name of the output directory to place all FASTA output files.
 
 =item B<-p, --parallel [<# of proc>]>
 
@@ -104,13 +81,13 @@ Displays the entire help documentation.
 
 =head1 DESCRIPTION
 
-B<run_pear.pl> This script allows for more automated running of the PEAR program on multiple fastq files. PEAR is used to stitch (or assemble) paired end reads together. The assumption is made that the paired end files have the same name with the forward reads being indicated by "_R1_" and the reverse being "_R2_". The script also allows the use of multiple threads.
- 
-Before use make sure you have installed the "pear" program so it is accesible from your PATH
+B<run_fastq_to_fasta.pl> This script simplifies running the FASTX toolkit "fastq_to_fasta" command by allowing multiple FASTQs to be converted with 1 command.
 
 =head1 AUTHOR
 
 Morgan Langille, E<lt>morgan.g.i.langille@gmail.comE<gt>
+
+Minor updates by Gavin Douglas (gavin.douglas@dal.ca)
 
 =cut
 
