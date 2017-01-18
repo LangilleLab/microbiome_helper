@@ -55,7 +55,7 @@ __END__
 
 =head1 Name
 
-run_fastq_to_fasta.pl - A wrapper of the FASTX toolkit command "fastq_to_fasta"
+run_fastq_to_fasta.pl - A wrapper of the FASTX-Toolkit command "fastq_to_fasta"
 
 =head1 USAGE
 
@@ -81,7 +81,12 @@ Displays the entire help documentation.
 
 =head1 DESCRIPTION
 
-B<run_fastq_to_fasta.pl> This script simplifies running the FASTX toolkit "fastq_to_fasta" command by allowing multiple FASTQs to be converted with 1 command.
+B<run_fastq_to_fasta.pl> This script simplifies running the FASTX-Toolkit "fastq_to_fasta" command by allowing multiple FASTQs to be converted with 1 command.
+
+Make sure that the FASTX-Toolkit command "fastq_to_fasta" is in your PATH before running this script.
+
+FASTX-Toolkit website: http://hannonlab.cshl.edu/fastx_toolkit/
+
 
 =head1 AUTHOR
 
