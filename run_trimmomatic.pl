@@ -9,7 +9,7 @@ use Pod::Usage;
 
 my $help; 
 my $version_marker;
-my $version = "1.0";
+my $version = "1.0.1";
 
 ### default cut-offs
 my $leading_min_qual = 5;
@@ -86,12 +86,16 @@ foreach my $s ( keys %s2f )	{	### loop over sample names
 	my @f = @{$s2f{$s}}; ### files for sample $s
 	my $file1 = $f[0];
 
-	# check whether filename matches has ".fastq" or ".fq" extension
+	# check whether filename matches has ".fastq" or ".fq" extension (and whether it's gzipped)
 	my $ext;
 	if ( $file1 =~ m/\.fastq$/ )	{
 		$ext = "fastq";
+	} elsif ( $file1 =~ m/\.fastq\.gz$/ ) {
+		$ext = "fastq.gz";
 	} elsif ( $file1 =~ m/\.fq$/ )	{
 		$ext = "fq";
+	} elsif ( $file1 =~ m/\.fq\.gz$/ ) {
+		$ext = "fq.gz";
 	} else {	die "file $file1 does not end in \".fastq\" or \".fq\"\n";	}
 
 	my $steps = "LEADING:$leading_min_qual TRAILING:$trailing_min_qual SLIDINGWINDOW:$window_size:$required_qual MINLEN:$min_length 2>$out_dir/$s"."_tmp_trim.log";
