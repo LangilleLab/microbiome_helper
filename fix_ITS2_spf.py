@@ -13,7 +13,7 @@ __email__ = "gavin.douglas@dal.ca"
 __status__ = "Development"
 
 parser = argparse.ArgumentParser(description="Fix STAMP-formatted OTU table\
- so that all \"unclassified\" and \"unidentified\" taxa are children of unique\
+ so that all \"unidentified\" taxa are children of unique\
  parents. This is done by appending \"X\" to the name of the closest\
  higher-order taxonomic label that is defined. Additional \"X\" characters\
  will be added to distinguish undefined children at different levels.",
@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(description="Fix STAMP-formatted OTU table\
                                  epilog='''Usage example: fix_ITS2_spf.py -i\
 otu_table.spf -o otu_table_fixed.spf''',
 
-                                 fileformatter_class=argparse.RawDescriptionHelpFormatter)
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument("-i", "--input", help="Input STAMP file", required=True)
 
@@ -55,10 +55,9 @@ def main():
                 outfile.write(line + "\n")
                 continue
 
-            # If no labels are unclassified or unidentified then
+            # If no labels are unidentified then
             # print out line and move to next one.
-            if "unclassified" not in line.lower() and\
-               "unidentified" not in line.lower():
+            if "unidentified" not in line.lower():
 
                 outfile.write(line + "\n")
                 continue
@@ -67,30 +66,29 @@ def main():
             taxa = line_split[0:args.col_count]
 
             # Inititalize output list, string containing the most recently
-            # defined parent, and a counter of the number of unclassified
+            # defined parent, and a counter of the number of unidentified
             # levels since last defined parent.
             out_taxa = []
-            defined_parent = None
-            num_unclassified = 0
+            defined_parent = "Unknown"
+            num_unidentified = 0
 
             # Loop over each label (from higher to lower levels).
-            # If label is unclassified/unidentified then add Xs to end.
+            # If label is unidentified then add Xs to end.
             # The number of Xs added is equal to the number of undefined
             # parents + 1.
 
             for label in taxa:
-                if "unclassified" in label.lower() or\
-                   "unidentified" in label.lower():
+                if "unidentified" in label.lower():
 
-                    num_unclassified += 1
+                    num_unidentified += 1
                     out_taxa.append(defined_parent + "_" +
-                                    num_unclassified * "X")
+                                    num_unidentified * "X")
                 else:
                     # If defined label then set as last defined parent and
-                    # reset unclassified counter.
+                    # reset unidentified counter.
                     out_taxa.append(label)
                     defined_parent = label
-                    num_unclassified = 0
+                    num_unidentified = 0
 
             line_split[0:args.col_count] = out_taxa
             out_writer.writerow(line_split)
