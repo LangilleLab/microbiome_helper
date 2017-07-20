@@ -74,6 +74,14 @@ foreach my $file (@files)	{
 
     my ($file_name,$dir,$suffix)=fileparse($file, qr/\.[^.]*/);
 
+    my $gzip_flag=0;
+    if($suffix eq '.gz'){
+	$gzip_flag=1;
+	my ($real_file_name,$dir_not_useful,$real_suffix)=fileparse($file_name, qr/\.[^.]*/);
+	$suffix=$real_suffix.$suffix;
+	$file_name=$real_file_name;
+    }
+
     my $out_file=$out_dir.'/'.$file_name."_screened".$suffix;
 
     my $cmd;
@@ -83,14 +91,20 @@ foreach my $file (@files)	{
 
     push( @log_files , $log_out );
 
-    if( $suffix eq '.fastq' )	{
+    if( $suffix =~ /fastq/ )	{
 
-	$cmd="bowtie2 -x $index_dir $param -p $cpu_count -U $file --un $out_file >/dev/null 2> $log_out";
+	$cmd="bowtie2 -x $index_dir $param -p $cpu_count -U $file ";
 
-    } else {
+    }else{
 
-	$cmd="bowtie2 -x $index_dir $param -p $cpu_count -f $file --un $out_file >/dev/null 2> $log_out";
+	$cmd="bowtie2 -x $index_dir $param -p $cpu_count -f $file ";
 
+    }
+
+    if($gzip_flag){
+	$cmd.="--un-gz $out_file >/dev/null 2> $log_out";
+    }else{
+	$cmd.="--un $out_file >/dev/null 2> $log_out";
     }
 
     print $cmd,"\n";
@@ -142,31 +156,31 @@ run_contaminant_filter.pl - A simple wrapper for bowtie2 to screen out contamina
 
 =head1 USAGE
 
-run_contaminant_filter.pl [-p [<# proc>] -o <out_dir> -d <path to index files> -l <log_file> -c <bowtie2 param file> -h --keep] <list of fastq or fasta files>
+run_contaminant_filter.pl [-p [<# proc>] -o <out_dir> -l <log_file> -c <bowtie2 param file> -h --keep] -d <path to index files> <list of fastq or fasta files>
 
 E.g.
 
-run_contaminant_filter.pl sample1_assembled.fastq sample2_assembled.fastq
+run_contaminant_filter.pl -d /your_path/bowtie_db sample1_assembled.fastq sample2_assembled.fastq
 
 #Shorter way to do the same thing
 
-run_contaminant_filter.pl *.fastq 
+run_contaminant_filter.pl -d /your_path/bowtie_db *.fastq
 
-#Same as above, but specify a different bowtie index database
+#Input files can alternatively be gzipped (output will then be gzipped as well)
 
-run_contaminant_filter.pl *.fastq -d /your_path/prefix
+run_contaminant_filter.pl -d /your_path/bowtie_db *.fastq.gz
 
 #Specify alternate location for output files (instead of default current directory)
 
-run_contaminant_filter.pl -o screened_reads *.fastq
+run_contaminant_filter.pl -o screened_reads -d /your_path/bowtie_db *.fastq
 
 #Run in parallel and use all CPUs
 
-run_contaminant_filter.pl *.fastq -p
+run_contaminant_filter.pl -p -d /your_path/bowtie_db *.fastq
 
 #Run in parallel limit to only 2 CPUs
 
-run_contaminant_filter.pl *.fastq -p 2
+run_contaminant_filter.pl -p 2 -d /your_path/bowtie_db *.fastq
 
 
 =head1 OPTIONS
@@ -216,9 +230,9 @@ B<run_contaminant_filter.pl> This is a wrapper script for running bowtie2 to scr
  
 =head1 AUTHOR
 
-Morgan Langille, E<lt>morgan.g.i.langille@gmail.comE<gt>
+Morgan Langille, E<lt>morgan.g.i.langille@gmail.comE<gt> &  E<lt>gavin.douglas@dal.caE<gt>
 
-Last updated 14 Dec 2016 by Gavin Douglas  E<lt>gavin.douglas@dal.caE<gt>
+Last updated 20 Jul 2017 by Morgan Langille
 
 =cut
 
