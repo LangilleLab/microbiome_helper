@@ -155,8 +155,6 @@ parse_dada2_filt_params <- function(in_param, single_end, param_name) {
   
 }
 
-
-
 # Print out version if --version flag set.
 if (opt$version) {
   cat("Wrapper version:", version, "\n")
@@ -170,7 +168,7 @@ if(is.null(opt$f_path)) {
   stop("path to forward FASTQs needs to be set.")
 }
 
-# Get forward and reverse filenames.
+# Get forward filenames.
 forward_in <- sort(list.files(opt$f_path, pattern=opt$f_match, full.names=TRUE))
 forward_samples <- sapply(strsplit(basename(forward_in), opt$sample_delim), `[`, 1)
 forward_out <- file.path(opt$output, paste0(forward_samples, "_R1_filt.fastq.gz"))
@@ -275,7 +273,7 @@ if (opt$single) {
               "n=", opt$num_reads, "\n",
               "matchIDs=", opt$matchIDs, "\n", 
               "id.sep=", opt$id_sep, "\n",
-              "id.field=", opt$id_field, "\n", 
+              "id.field=", id_field_log, "\n", 
               "verbose=", opt$verbose, "\n\n", sep=""))
   }
   
