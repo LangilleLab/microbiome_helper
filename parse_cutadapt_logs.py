@@ -115,7 +115,7 @@ def main():
 
                     # Check if header printed yet and if not then do so.
                     if library and not header_printed:
-                        header_out = ["Sample"] + count_categories
+                        header_out = ["sample"] + count_categories
                         print("\t".join(header_out), file=outfile)
                         header_printed = True
 
