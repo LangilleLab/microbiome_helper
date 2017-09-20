@@ -150,7 +150,7 @@ parse_dada2_filt_params <- function(in_param, single_end, param_name) {
   if (length(in_param_split) == 1) {
     return(as.numeric(in_param_split[1]))
   } else {
-    return(as.numeric(in_param_split[1]), as.numeric(in_param_split[2]))
+    return(c(as.numeric(in_param_split[1]), as.numeric(in_param_split[2])))
   }
   
 }
@@ -202,7 +202,7 @@ if(opt$verbose) {
 
 # Set id_field output log to be character of "NULL" so that it is printed (if applicable).
 id_field_log <- opt$id_field
-if(is.null(opt$id_field)) {
+if(is.null(id_field_log)) {
   id_field_log <- "NULL"
 }
 
@@ -215,14 +215,14 @@ if (opt$single) {
     cat(paste("fwd=", paste(forward_in, collapse=",") , "\n", 
               "filt=", paste(forward_out, collapse=","), "\n",
               "compress=", !opt$no_gzip, "\n",
-              "truncQ=", filt_params$truncQ, "\n",  
-              "truncLen=", filt_params$truncLen, "\n", 
-              "trimLef=", filt_params$trimLeft, "\n",  
-              "maxLen=", filt_params$maxLen, "\n", 
-              "minLen=", filt_params$minLen, "\n",  
-              "maxN=", filt_params$maxN, "\n", 
-              "minQ=", filt_params$minQ, "\n",
-              "maxEE=", filt_params$maxEE, "\n",
+              "truncQ=", paste(filt_params$truncQ, collapse=","), "\n",  
+              "truncLen=", paste(filt_params$truncLen, collapse=","), "\n", 
+              "trimLef=", paste(filt_params$trimLeft, collapse=","), "\n",  
+              "maxLen=", paste(filt_params$maxLen, collapse=","), "\n", 
+              "minLen=", paste(filt_params$minLen, collapse=","), "\n",  
+              "maxN=", paste(filt_params$maxN, collapse=","), "\n", 
+              "minQ=", paste(filt_params$minQ, collapse=","), "\n",
+              "maxEE=", paste(filt_params$maxEE, collapse=","), "\n",
               "rm.phix=", !opt$no_rm_phiX, "\n",
               "multithread=", multithread_opt, "\n",
               "n=", opt$num_reads, "\n",
@@ -250,9 +250,9 @@ if (opt$single) {
   
   # Check that sample names for forward and reverse FASTQs are the same.
   if(! identical(forward_samples, reverse_samples)){
-    stop(paste("Sample names parsed from forward and reverse filenames don't match.",
-               "\n\nForward sample names:", forward_samples,
-               "\n\nReverse sample names:", reverse_samples))
+    stop(paste("\n\nSample names parsed from forward and reverse filenames don't match.",
+               "\nForward sample name:", forward_samples,
+               "\nReverse sample name:", reverse_samples))
   }
   
   if(opt$verbose) {
@@ -262,14 +262,14 @@ if (opt$single) {
               "rev=", paste(reverse_in, collapse=","), "\n",
               "filt.rev=", paste(reverse_out, collapse=","), "\n",
               "compress=", !opt$no_gzip, "\n",
-              "truncQ=", filt_params$truncQ, "\n",  
-              "truncLen=", filt_params$truncLen, "\n", 
-              "trimLef=", filt_params$trimLeft, "\n",  
-              "maxLen=", filt_params$maxLen, "\n", 
-              "minLen=", filt_params$minLen, "\n",  
-              "maxN=", filt_params$maxN, "\n", 
-              "minQ=", filt_params$minQ, "\n",
-              "maxEE=", filt_params$maxEE, "\n",
+              "truncQ=", paste(filt_params$truncQ, collapse=","), "\n",  
+              "truncLen=", paste(filt_params$truncLen, collapse=","), "\n", 
+              "trimLef=", paste(filt_params$trimLeft, collapse=","), "\n",  
+              "maxLen=", paste(filt_params$maxLen, collapse=","), "\n", 
+              "minLen=", paste(filt_params$minLen, collapse=","), "\n",  
+              "maxN=", paste(filt_params$maxN, collapse=","), "\n", 
+              "minQ=", paste(filt_params$minQ, collapse=","), "\n",
+              "maxEE=", paste(filt_params$maxEE, collapse=","), "\n",
               "rm.phix=", !opt$no_rm_phiX, "\n",
               "multithread=", multithread_opt, "\n",
               "n=", opt$num_reads, "\n",
@@ -293,9 +293,10 @@ if (opt$single) {
 
 # Convert log table rownames from R1 FASTQs to sample names.
 read_counts <- as.data.frame(read_counts)
-rownames(read_counts) <- sapply(strsplit(rownames(read_counts), opt$sample_delim), `[`, 1)
-colnames(read_counts) <- c("input", "filtered")
+read_counts$sample <- sapply(strsplit(rownames(read_counts), opt$sample_delim), `[`, 1)
+colnames(read_counts) <- c("input", "filtered", "sample")
+read_counts <- read_counts[c("sample", "input", "filtered")]
 
 # Print out input and output read counts to logfile.
 write.table(x = read_counts, file = opt$log, quote = FALSE, sep="\t",
-            col.names = NA, row.names = TRUE)
+            col.names = TRUE, row.names = FALSE)
