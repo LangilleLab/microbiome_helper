@@ -3,6 +3,8 @@
 # Read in package to read in command-line options.
 library("optparse")
 
+# Source Rscript containing functions 
+
 version <- "1.0"
 
 option_list <- list(
@@ -18,7 +20,7 @@ option_list <- list(
               help="Flag to indicate that reads are single-end (default: FALSE).", metavar = "boolean"),
   
   make_option(c("--f_match"), type="character", default="_R1_.*fastq.*",
-              help="Regular expression to match in forward reads' filenames (default: _R1_.*fastq.*).", 
+              help="Regular expression to match in forward reads' filenames (default: \"_R1_.*fastq.*\").", 
               metavar="PATTERN"),
   
   make_option(c("--r_match"), type="character", default="_R2_.*fastq.*",
@@ -109,7 +111,7 @@ opt_parser <- OptionParser(option_list=option_list,
                            usage = "%prog [options] -f PATH",
                            
                            description = paste("\nThis is a wrapper for DADA2 that is based on the authors\'", 
-                                               "big data tutorial available here:",
+                                               "filtering step in the big data tutorial available here:",
                                                "https://benjjneb.github.io/dada2/bigdata.html.\n\nBe sure to cite the DADA2",
                                                "paper if you use this script:\nCallahan BJ et al. 2016. DADA2:",
                                                "High-resolution sample inference from Illumina amplicon data.",
@@ -123,6 +125,8 @@ opt_parser <- OptionParser(option_list=option_list,
 opt <- parse_args(opt_parser)
 
 # Function to parse DADA2 filtering params and to throw error if any unexpected input.
+# This function deals with cases where multiple options are specified for forward
+# and reverse reads at the filtering step.
 parse_dada2_filt_params <- function(in_param, single_end, param_name) {
   
   # Split by comma (in case separate options given for R1 and R2).
@@ -136,11 +140,11 @@ parse_dada2_filt_params <- function(in_param, single_end, param_name) {
   
   # Make sure that only one value given if SE.
   if(single_end & length(in_param_split) != 1) {
-        stop(paste("Error when parsing parameter", param_name, "-",
-                   "expected 1 input value, but got", length(in_param_split), 
-                   sep=" "))
-             
-  # Make sure that max of 2 values given if PE.
+    stop(paste("Error when parsing parameter", param_name, "-",
+               "expected 1 input value, but got", length(in_param_split), 
+               sep=" "))
+    
+    # Make sure that max of 2 values given if PE.
   } else if(! single_end & length(in_param_split) > 2) {
     stop(paste("Error when parsing parameter", param_name, "-",
                "expected max of 2 input values, but got", length(in_param_split), 
@@ -152,7 +156,6 @@ parse_dada2_filt_params <- function(in_param, single_end, param_name) {
   } else {
     return(c(as.numeric(in_param_split[1]), as.numeric(in_param_split[2])))
   }
-  
 }
 
 # Print out version if --version flag set.
@@ -210,21 +213,21 @@ if (opt$single) {
   if(opt$verbose) {
     
     cat("Single-end mode\n\n")
-    cat(paste("fwd=", paste(forward_in, collapse=",") , "\n", 
-              "filt=", paste(forward_out, collapse=","), "\n",
-              "compress=", !opt$no_gzip, "\n",
-              "truncQ=", paste(filt_params$truncQ, collapse=","), "\n",  
-              "truncLen=", paste(filt_params$truncLen, collapse=","), "\n", 
-              "trimLef=", paste(filt_params$trimLeft, collapse=","), "\n",  
-              "maxLen=", paste(filt_params$maxLen, collapse=","), "\n", 
-              "minLen=", paste(filt_params$minLen, collapse=","), "\n",  
-              "maxN=", paste(filt_params$maxN, collapse=","), "\n", 
-              "minQ=", paste(filt_params$minQ, collapse=","), "\n",
-              "maxEE=", paste(filt_params$maxEE, collapse=","), "\n",
-              "rm.phix=", !opt$no_rm_phiX, "\n",
-              "multithread=", multithread_opt, "\n",
-              "n=", opt$num_reads, "\n",
-              "verbose=", opt$verbose, "\n\n", sep=""))
+    cat(paste("fwd =", paste(forward_in, collapse=",") , "\n", 
+              "filt =", paste(forward_out, collapse=","), "\n",
+              "compress =", !opt$no_gzip, "\n",
+              "truncQ =", paste(filt_params$truncQ, collapse=","), "\n",  
+              "truncLen =", paste(filt_params$truncLen, collapse=","), "\n", 
+              "trimLef =", paste(filt_params$trimLeft, collapse=","), "\n",  
+              "maxLen =", paste(filt_params$maxLen, collapse=","), "\n", 
+              "minLen =", paste(filt_params$minLen, collapse=","), "\n",  
+              "maxN =", paste(filt_params$maxN, collapse=","), "\n", 
+              "minQ =", paste(filt_params$minQ, collapse=","), "\n",
+              "maxEE =", paste(filt_params$maxEE, collapse=","), "\n",
+              "rm.phix =", !opt$no_rm_phiX, "\n",
+              "multithread =", multithread_opt, "\n",
+              "n =", opt$num_reads, "\n",
+              "verbose =", opt$verbose, "\n\n", sep=""))
   }
   
   read_counts <- filterAndTrim(fwd=forward_in, filt=forward_out, compress=!opt$no_gzip,
@@ -255,26 +258,26 @@ if (opt$single) {
   
   if(opt$verbose) {
     cat("Paired-end mode\n")
-    cat(paste("fwd=", paste(forward_in, collapse=",") , "\n", 
-              "filt=", paste(forward_out, collapse=","), "\n",
-              "rev=", paste(reverse_in, collapse=","), "\n",
-              "filt.rev=", paste(reverse_out, collapse=","), "\n",
-              "compress=", !opt$no_gzip, "\n",
-              "truncQ=", paste(filt_params$truncQ, collapse=","), "\n",  
-              "truncLen=", paste(filt_params$truncLen, collapse=","), "\n", 
-              "trimLef=", paste(filt_params$trimLeft, collapse=","), "\n",  
-              "maxLen=", paste(filt_params$maxLen, collapse=","), "\n", 
-              "minLen=", paste(filt_params$minLen, collapse=","), "\n",  
-              "maxN=", paste(filt_params$maxN, collapse=","), "\n", 
-              "minQ=", paste(filt_params$minQ, collapse=","), "\n",
-              "maxEE=", paste(filt_params$maxEE, collapse=","), "\n",
-              "rm.phix=", !opt$no_rm_phiX, "\n",
-              "multithread=", multithread_opt, "\n",
-              "n=", opt$num_reads, "\n",
-              "matchIDs=", opt$matchIDs, "\n", 
-              "id.sep=", opt$id_sep, "\n",
-              "id.field=", id_field_log, "\n", 
-              "verbose=", opt$verbose, "\n\n", sep=""))
+    cat(paste("fwd =", paste(forward_in, collapse=",") , "\n", 
+              "filt =", paste(forward_out, collapse=","), "\n",
+              "rev =", paste(reverse_in, collapse=","), "\n",
+              "filt.rev =", paste(reverse_out, collapse=","), "\n",
+              "compress =", !opt$no_gzip, "\n",
+              "truncQ =", paste(filt_params$truncQ, collapse=","), "\n",  
+              "truncLen =", paste(filt_params$truncLen, collapse=","), "\n", 
+              "trimLef =", paste(filt_params$trimLeft, collapse=","), "\n",  
+              "maxLen =", paste(filt_params$maxLen, collapse=","), "\n", 
+              "minLen =", paste(filt_params$minLen, collapse=","), "\n",  
+              "maxN =", paste(filt_params$maxN, collapse=","), "\n", 
+              "minQ =", paste(filt_params$minQ, collapse=","), "\n",
+              "maxEE =", paste(filt_params$maxEE, collapse=","), "\n",
+              "rm.phix =", !opt$no_rm_phiX, "\n",
+              "multithread =", multithread_opt, "\n",
+              "n =", opt$num_reads, "\n",
+              "matchIDs =", opt$matchIDs, "\n", 
+              "id.sep =", opt$id_sep, "\n",
+              "id.field =", id_field_log, "\n", 
+              "verbose =", opt$verbose, "\n\n", sep=""))
   }
   
   read_counts <- filterAndTrim(fwd=forward_in, filt=forward_out, rev=reverse_in,
