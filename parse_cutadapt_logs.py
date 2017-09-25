@@ -13,23 +13,23 @@ __status__ = "Development"
 import argparse
 import re
 import os
+import sys
 
-parser = argparse.ArgumentParser(description="Parse cutadapt logfiles to \
-produce a table of read counts per sample.", epilog='''Usage example:
+parser = argparse.ArgumentParser(
+                        description="Parse cutadapt logfiles to: produce a "
+                                    "table of read counts per sample.",
+                                    epilog="Usage example:\n"
+                                    "parse_cutadapt_logs.py -i "
+                                    "primer_trimmed_fastqs/*cutadapt_log.txt "
+                                    "-o cutadapt_log.txt",
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
 
-parse_cutadapt_logs.py -i primer_trimmed_fastqs -m "_log.txt" \
--o cutadapt_log.txt
+parser.add_argument("-i", "--input", help="Cutadapt logfiles", required=True,
+                    type=str, nargs='+')
 
-''', formatter_class=argparse.RawDescriptionHelpFormatter)
-
-parser.add_argument("-i", "--input", help="Folder containing cutadapt \
-logfiles", required=True, type=str)
-
-parser.add_argument("-m", "--match", help="String to match cutadapt log \
-filenames", required=False, default="_log.txt", type=str)
-
-parser.add_argument("-s", "--sample_delim", help="String to split filename on \
-to determine sample name (assumed to be 1st field after splitting",
+parser.add_argument("-s", "--sample_delim",
+                    help="String to split filename on to determine sample "
+                         "name (assumed to be 1st field after splitting)",
                     required=False, default="_", type=str)
 
 parser.add_argument("-o", "--output", help="Name of output read count table",
@@ -39,18 +39,6 @@ parser.add_argument("-o", "--output", help="Name of output read count table",
 def main():
 
     args = parser.parse_args()
-
-    # Check whether input folder exists.
-    if not os.path.isdir(args.input):
-        raise Exception("Input path " + args.input + " is not a directory")
-
-    # Read in cutadapt log filenames.
-    logfiles = [f for f in os.listdir(args.input) if args.match in f]
-
-    # Throw exception if no logfiles matched string.
-    if len(logfiles) == 0:
-        raise Exception("No logfiles found in folder " +
-                        args.input + " matching string " + args.match)
 
     # Open output file for writing.
     outfile = open(args.output, "w")
@@ -62,18 +50,18 @@ def main():
     header_printed = False
 
     # Loop over all logfiles.
-    for logfile in logfiles:
+    for log in args.input:
+
+        logfile = os.path.basename(log)
 
         sample = logfile.split(args.sample_delim)[0]
 
         # Check whether sample already seen and if not add to set.
         if sample in past_samples:
-            raise Exception("Parsed sample name " + sample +
-                            " is not unique!")
+            sys.exit("Parsed sample name {sample} is not unique!".format(
+                                                                sample=sample))
 
         past_samples.add(sample)
-
-        log = args.input + "/" + logfile
 
         # Initialize library object which will be either "single" or "paired"
         library = None
@@ -123,47 +111,54 @@ def main():
                     continue
 
                 # If library defined then check for matching strings.
-                for i in range(len(strings2match)):
+                for string2match, count_category in zip(strings2match,
+                                                        count_categories):
 
-                    if strings2match[i] in line:
+                    if string2match in line:
 
-                        count_regex = r".*" + re.escape(strings2match[i]) + \
+                        count_regex = r".*" + re.escape(string2match) + \
                                        "\s+" + "([0-9]+,*[0-9]*).*"
 
-                        count_match = re.match(count_regex, line).group(1)
+                        count_full_match = re.match(count_regex, line)
 
-                        if(count_match):
-                            category_match = count_categories[i]
+                        if count_full_match:
+
+                            count_match = count_full_match.group(1)
 
                             # Check whether this string was matched already.
-                            if category_match in read_counts:
-                                raise Exception("Multiple matches to string " +
-                                                strings2match[i] + " in " +
-                                                log)
+                            if count_category in read_counts:
+                                sys.exit("Multiple matches to string "
+                                         "{string2match} in {log}".
+                                         format(string2match=string2match,
+                                                log=log))
 
                             # Remove comma.
                             count_match = count_match.replace(",", "")
 
-                            read_counts[category_match] = count_match
+                            read_counts[count_category] = count_match
 
         # If library was not defined then throw error.
         if not library:
-            raise Exception("Sequencing library type could not be " +
-                            "determined for file " + log)
+            sys.exit("Sequencing library type could not be "
+                     "determined for file {log}".format(log=log))
 
         # Initialize list to write out per sample.
         out_counts = [sample]
 
         # Loop over strings/categories indices again and make sure they are
         # all present.
-        for i in range(len(strings2match)):
+        for string2match, count_category in zip(strings2match,
+                                                count_categories):
 
-            if count_categories[i] not in read_counts:
-                raise Exception("Could not find line matching " +
-                                strings2match[i] + " for count of " +
-                                count_categories[i] + " in " + log)
+            if count_category not in read_counts:
+                sys.exit("Could not find line matching "
+                         "{string2match} for count of "
+                         "{count_category} in {log}".format(
+                                                string2match=string2match,
+                                                count_category=count_category,
+                                                log=log))
 
-            out_counts = out_counts + [read_counts[count_categories[i]]]
+            out_counts = out_counts + [read_counts[count_category]]
 
         print("\t".join(out_counts), file=outfile)
 
