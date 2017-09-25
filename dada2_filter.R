@@ -1,16 +1,14 @@
 #!/usr/bin/env Rscript
 
 # Read in package to read in command-line options.
-library("optparse")
-
-# Source Rscript containing functions 
+suppressMessages(library("optparse"))
 
 version <- "1.0"
 
 option_list <- list(
 
   make_option(c("-f", "--f_path"), type="character", default=NULL,
-              help="Location of forward reads (required)." , metavar="path"),
+              help="Location of forward reads (required).", metavar="path"),
   
   make_option(c("-r", "--r_path"), type="character", default=NULL,
               help="Location of reverse reads (if applicable). Same as forward reads by default.",
@@ -29,7 +27,7 @@ option_list <- list(
   
   make_option(c("--sample_delim"), type="character", default="_",
               help=paste("Character to split filenames on to determine sample name (default: \"_\").",
-              "Sample names are assumed to be field 1 after splitting.", sep=" "),
+              "Sample names are assumed to be 1st field after splitting.", sep=" "),
               metavar="PATTERN"),
   
   make_option(c("--truncQ"), type="character", default="2",
@@ -194,11 +192,12 @@ if (opt$threads > 1) {
 }
 
 # Finally read in and print out DADA2 version.
-library("dada2")
-
 if(opt$verbose) {
   cat("Running DADA2 version:", as.character(packageVersion("dada2")), "\n")
+  library("dada2")
   cat("Running filterAndTrim function with the below options.\n")
+} else {
+  suppressMessages(library("dada2"))
 }
 
 # Set id_field output log to be character of "NULL" so that it is printed (if applicable).
@@ -218,7 +217,7 @@ if (opt$single) {
               "compress =", !opt$no_gzip, "\n",
               "truncQ =", paste(filt_params$truncQ, collapse=","), "\n",  
               "truncLen =", paste(filt_params$truncLen, collapse=","), "\n", 
-              "trimLef =", paste(filt_params$trimLeft, collapse=","), "\n",  
+              "trimLeft =", paste(filt_params$trimLeft, collapse=","), "\n",  
               "maxLen =", paste(filt_params$maxLen, collapse=","), "\n", 
               "minLen =", paste(filt_params$minLen, collapse=","), "\n",  
               "maxN =", paste(filt_params$maxN, collapse=","), "\n", 
@@ -265,7 +264,7 @@ if (opt$single) {
               "compress =", !opt$no_gzip, "\n",
               "truncQ =", paste(filt_params$truncQ, collapse=","), "\n",  
               "truncLen =", paste(filt_params$truncLen, collapse=","), "\n", 
-              "trimLef =", paste(filt_params$trimLeft, collapse=","), "\n",  
+              "trimLeft =", paste(filt_params$trimLeft, collapse=","), "\n",  
               "maxLen =", paste(filt_params$maxLen, collapse=","), "\n", 
               "minLen =", paste(filt_params$minLen, collapse=","), "\n",  
               "maxN =", paste(filt_params$maxN, collapse=","), "\n", 
