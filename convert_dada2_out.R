@@ -35,12 +35,13 @@ option_list <- list(
   
 )
 
-opt_parser <- OptionParser(option_list=option_list, 
-                           usage = "%prog [options] -i seqtab.rds -b seqtab.biom -f seqtab.fasta",
-                           
-                           description = paste("Script to convert dada2 sequence table to a BIOM and FASTA file.\n",
-                                               "You can also specify an RDS file containing the taxa labels to create",
-                                               "a BIOM observation metadata table for taxonomy", sep="")
+opt_parser <- OptionParser(
+                   option_list=option_list, 
+                   usage = "%prog [options] -i seqtab_final.rds -b seqtab.biom -f seqtab.fasta",
+                   description = paste(
+                     "Script to convert dada2 sequence table to a BIOM and FASTA file.\n",
+                     "You can also specify an RDS file containing the taxa labels to create",
+                     "a BIOM observation metadata table for taxonomy", sep="")
 )
 
 opt <- parse_args(opt_parser)
@@ -104,10 +105,13 @@ if(!is.null(opt$taxa_in)){
   
   # Check that dada2 variants are in same order as sequence table.
   if(!identical(rownames(in_taxa), seqs)){
-    stop("sequences in taxa and sequence table aren't ordered the same.")
+    stop("sequences in taxa and sequence table are not ordered the same.")
   }
   
   rownames(in_taxa) <- ids_study
+
+  # Replace all NA values with "Unclassified".
+  in_taxa[is.na(in_taxa)] <- "Unclassified"
   
   taxa_combined <- apply(in_taxa, 1, function(x) paste(x, collapse=";"))
   
