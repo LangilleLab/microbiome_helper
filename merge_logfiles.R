@@ -29,11 +29,12 @@ option_list <- list(
   
 )
 
-opt_parser <- OptionParser(option_list=option_list, 
-                           usage = "%prog [options] -i log1.txt,log2.txt",
-                           
-                           description = paste("Basic script to read in multiple logfiles and to merge them by rows.\n",
-                                               "The first column of each file is assumed to contain the sample names", sep="")
+opt_parser <- OptionParser(
+                     option_list=option_list,
+                     usage = "%prog [options] -i log1.txt,log2.txt",
+                     description = paste(
+                         "Basic script to read in multiple logfiles and to merge them by rows.\n",
+                         "The first column of each file is assumed to contain the sample names", sep="")
 )
 
 opt <- parse_args(opt_parser)

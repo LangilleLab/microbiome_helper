@@ -15,11 +15,10 @@ option_list <- list(
               metavar="path"),
   
   make_option(c("-s", "--ref_species"), type="character", default=NULL,
-              help="Location of reference fasta to use for species assignment (required).", 
+              help=paste("Location of reference fasta to use for species",
+                         "assignment (required when --skip_species is FALSE).", 
+                         sep=""), 
               metavar="path"),
-  
-  make_option(c("--seed"), type="integer", default=NULL,
-              help="Random seed to make command reproducible (required).", metavar = "integer"),
   
   make_option(c("-t", "--threads"), type="integer", default=1,
               help="Number of threads to use (default: 1).", metavar="integer"),
@@ -34,8 +33,12 @@ option_list <- list(
                          "(default: \"seqtab.rds\").", sep=" "), metavar="path"),
   
   make_option(c("--tax_out"), type="character", default="tax_final.rds",
-              help=paste("Output RDS file for sequence table after chimera filtering",
+              help=paste("Output RDS file with taxa assignments above species.",
                          "(default: \"tax_final.rds\").", sep=" "), metavar="path"),
+  
+  make_option(c("--sp_out"), type="character", default="species_final.rds",
+              help=paste("Output RDS file with taxa assignments including species.",
+                         "(default: \"species_final.rds\").", sep=" "), metavar="path"),
   
   make_option(c("--chimera_method"), type="character", default="consensus",
               help=paste("Method for chimera checking, one of \"consensus\", \"pooled\",",
@@ -102,16 +105,18 @@ option_list <- list(
 
 )
 
-opt_parser <- OptionParser(option_list=option_list, 
-                           usage = "%prog [options] -i seqtab.rds -r /path/to/ref.fa -s /path/to/species_ref.fa --seed 123",
+opt_parser <- OptionParser(
+                    option_list=option_list, 
+                    usage = "%prog [options] -i seqtab.rds -r /path/to/ref.fa -s /path/to/species_ref.fa",
                            
-                           description = paste("\nThis is a wrapper for the DADA2 chimera and tax assignment step that is", 
-                                               "based on the authors\' big data tutorial available here:",
-                                               "https://benjjneb.github.io/dada2/bigdata.html.\n\nBe sure to cite the DADA2",
-                                               "paper if you use this script:\nCallahan BJ et al. 2016. DADA2:",
-                                               "High-resolution sample inference from Illumina amplicon data.",
-                                               "Nature Methods 13:581-583.\n\nNote this script was tested with",
-                                               "DADA2 v1.4.0", sep=" ")
+                    description = paste(
+                          "\nThis is a wrapper for the DADA2 chimera and tax assignment step that is", 
+                          "based on the authors\' big data tutorial available here:",
+                          "https://benjjneb.github.io/dada2/bigdata.html.\n\nBe sure to cite the DADA2",
+                          "paper if you use this script:\nCallahan BJ et al. 2016. DADA2:",
+                          "High-resolution sample inference from Illumina amplicon data.",
+                          "Nature Methods 13:581-583.\n\nNote this script was tested with",
+                          "DADA2 v1.4.0", sep=" ")
                           )
 
 opt <- parse_args(opt_parser)
@@ -137,11 +142,6 @@ if(is.null(opt$refFasta)) {
 # Check that ref_species set if doing species assignment.
 if(!opt$skip_species & is.null(opt$refFasta)) {
   stop("Path to refFasta needs to be set.")
-}
-
-# Check that random seed set.
-if(is.null(opt$seed)) {
-  stop("random seed needs to be set.")
 }
 
 # Check that chimera method is one of 3 possible choices.
@@ -177,35 +177,31 @@ if(opt$verbose) {
 }
 
 seqtab_nochim <- removeBimeraDenovo(in_seqtab, 
-                                    method=opt$chimera_method, 
-                                    minFoldParentOverAbundance=opt$minFoldParentOverAbundance,
-                                    minParentAbundance=opt$minParentAbundance,
-                                    allowOneOff=opt$allowOneOff,
-                                    minOneOffParentDistance=opt$minOneOffParentDistance,
-                                    maxShift=opt$maxShift,
-                                    minSampleFraction=opt$minSampleFraction,
-                                    ignoreNNegatives=opt$ignoreNNegatives,
-                                    multithread=multithread_opt,
-                                    verbose=opt$verbose)
+                                    method = opt$chimera_method, 
+                                    minFoldParentOverAbundance = opt$minFoldParentOverAbundance,
+                                    minParentAbundance = opt$minParentAbundance,
+                                    allowOneOff = opt$allowOneOff,
+                                    minOneOffParentDistance = opt$minOneOffParentDistance,
+                                    maxShift = opt$maxShift,
+                                    minSampleFraction = opt$minSampleFraction,
+                                    ignoreNNegatives = opt$ignoreNNegatives,
+                                    multithread = multithread_opt,
+                                    verbose = opt$verbose)
 
 if(opt$verbose) {
-  cat("Running assignTaxonomy with below options.\n",
-      "Random seed:", as.character(opt$seed), "\n\n",
+  cat("Running assignTaxonomy with below options.\n\n",
       "refFasta =", opt$refFasta, "\n",
       "minBoot =", opt$minBoot, "\n",
       "tryRC =", opt$tryRC, "\n\n")
 }
 
-# Set random seed for reproducibility.
-set.seed(opt$seed)
-
 # Run taxonomy assignment.
-taxa <- assignTaxonomy(seqs=seqtab_nochim, 
-                       refFasta=opt$refFasta,
-                       minBoot=opt$minBoot,
-                       tryRC=opt$tryRC,
-                       multithread=multithread_opt,
-                       verbose=opt$verbose)
+taxa <- assignTaxonomy(seqs = seqtab_nochim, 
+                       refFasta = opt$refFasta,
+                       minBoot = opt$minBoot,
+                       tryRC = opt$tryRC,
+                       multithread = multithread_opt,
+                       verbose = opt$verbose)
 
 if(! opt$skip_species) {
 
@@ -216,41 +212,32 @@ if(! opt$skip_species) {
   }
   
   # Add exact species assignment where possible.
-  taxa_species <- addSpecies(taxtab=taxa, 
-                             refFasta=opt$ref_species, 
+  taxa_species <- addSpecies(taxtab = taxa, 
+                             refFasta = opt$ref_species, 
                              allowMultiple = opt$allowMultiple, 
                              verbose = opt$verbose)
   
   # Write out taxa + species table.
-  saveRDS(taxa_species, opt$tax_out)
+  saveRDS(taxa_species, opt$sp_out)
   
 } else {
-  
   if(opt$verbose) {
     cat("\n\nSkipping addSpecies step.\n\n")
   }
- 
-  # Write out the taxa count table without species.
-  saveRDS(taxa, opt$tax_out)
-  
 }
+
+# Write out taxa (without species) table.
+saveRDS(taxa, opt$tax_out)
 
 # Write out count table as RDS.
 saveRDS(seqtab_nochim, opt$count_out)
 
-
 # Track read and variants counts before and after chimera checking.
-
 log_counts <- as.data.frame(
                cbind(rowSums(in_seqtab),
                rowSums(seqtab_nochim),
                rowSums(in_seqtab != 0),
                rowSums(seqtab_nochim != 0)))
-
-saveRDS(in_seqtab,file = "tmp1.rds")
-saveRDS(seqtab_nochim,file = "tmp2.rds")
-saveRDS(in_seqtab,file = "tmp3.rds")
-saveRDS(seqtab_nochim,file = "tmp4.rds")
 
 colnames(log_counts) <- c("input_reads", "nonchimera_reads",
                           "input_variants", "nonchimera_variants")
@@ -260,5 +247,5 @@ log_counts$sample <- rownames(in_seqtab)
 log_counts <- log_counts[,c("sample", "input_reads", "nonchimera_reads",
                             "input_variants", "nonchimera_variants")]
 
-write.table(x = log_counts, file = opt$log, quote = FALSE, sep="\t",
+write.table(x = log_counts, file = opt$log, quote = FALSE, sep = "\t",
             col.names = TRUE, row.names = FALSE)
