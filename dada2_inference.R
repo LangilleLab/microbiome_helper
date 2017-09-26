@@ -11,7 +11,7 @@ option_list <- list(
               help="Location of forward reads (required)." , metavar="path"),
   
   make_option(c("--seed"), type="integer", default=NULL,
-              help="Random seed to make command reproducible (required).", metavar = "integer"),
+              help="Random seed to make command reproducible.", metavar = "integer"),
   
   make_option(c("-r", "--r_path"), type="character", default=NULL,
               help="Location of reverse reads (if applicable). Same as forward reads by default.",
@@ -53,6 +53,11 @@ option_list <- list(
                          "for learnErrors step (default: FALSE).", sep=" "),
               metavar = "boolean"),
   
+  make_option(c("--plot_errors"), action = "store_true", type="logical", default=FALSE,
+              help=paste("Flag to indicate that estimated error rates should be plotted",
+                         "to pdfs (default: FALSE).", sep=" "),
+              metavar = "boolean"),
+  
   make_option(c("--selfConsist"), action = "store_true", type="logical", default=FALSE,
               help=paste("Flag to indicate that dada algorithm should alternate between sample",
                          "inference and error rate estimate until convergence (default: FALSE).", 
@@ -77,8 +82,8 @@ option_list <- list(
   
   make_option(c("--justConcatenate"), action = "store_true", type="logical", default=FALSE,
               help=paste("Flag to indicate that forward and reverse reads should just", 
-                               "be concatenated with 10 Ns as spacers between them",
-                               "(default: FALSE).", sep=" "), metavar = "boolean"),
+                         "be concatenated with 10 Ns as spacers between them",
+                         "(default: FALSE).", sep=" "), metavar = "boolean"),
   
   make_option(c("--trimOverhang"), action = "store_true", type="logical", default=FALSE,
               help=paste("Flag to indicate that overhands in alignment between forward",
@@ -98,16 +103,17 @@ option_list <- list(
 
 )
 
-opt_parser <- OptionParser(option_list=option_list, 
-                           usage = "%prog [options] -f PATH --seed 123",
-                           
-                           description = paste("\nThis is a wrapper for the DADA2 inference step that is", 
-                                               "based on the authors\' big data tutorial available here:",
-                                               "https://benjjneb.github.io/dada2/bigdata.html.\n\nBe sure to cite the DADA2",
-                                               "paper if you use this script:\nCallahan BJ et al. 2016. DADA2:",
-                                               "High-resolution sample inference from Illumina amplicon data.",
-                                               "Nature Methods 13:581-583.\n\nNote this script was tested with",
-                                               "DADA2 v1.4.0", sep=" ")
+opt_parser <- OptionParser(
+                    option_list=option_list, 
+                    usage = "%prog [options] -f PATH --seed 123",
+                    description = paste(
+                             "\nThis is a wrapper for the DADA2 inference step that is", 
+                             "based on the authors\' big data tutorial available here:",
+                             "https://benjjneb.github.io/dada2/bigdata.html.\n\nBe sure to cite the DADA2",
+                             "paper if you use this script:\nCallahan BJ et al. 2016. DADA2:",
+                             "High-resolution sample inference from Illumina amplicon data.",
+                             "Nature Methods 13:581-583.\n\nNote this script was tested with",
+                             "DADA2 v1.4.0", sep=" ")
                           )
 
 opt <- parse_args(opt_parser)
@@ -123,11 +129,6 @@ if (opt$version) {
 # Check if path to forward files set, if not stop job.
 if(is.null(opt$f_path)) {
   stop("path to forward FASTQs needs to be set.")
-}
-
-# Check that random seed set.
-if(is.null(opt$seed)) {
-  stop("random seed needs to be set.")
 }
 
 # Set multithread option (FALSE if no, otherwise give # core).
@@ -147,12 +148,16 @@ library("dada2")
 
 if(opt$verbose) {
   cat("Running DADA2 version:", as.character(packageVersion("dada2")), "\n")
-  cat("Random seed:", as.character(opt$seed), "\n")
+
 }
 
-# Set random seed for reproducibility.
-set.seed(opt$seed)
-
+# Set random seed for reproducibility if set.
+if(! is.null(opt$seed)) {
+  set.seed(opt$seed)
+  if(opt$verbose){
+    cat("Random seed:", as.character(opt$seed), "\n")
+  }
+}
   
 if(opt$verbose) {
     cat("Running learnErrors with below options.\n")
@@ -163,7 +168,7 @@ if(opt$verbose) {
 }
 
 # Learn error model for forward reads.
-err <- learnErrors(fls = forward_in, 
+err_forward <- learnErrors(fls = forward_in, 
                    nreads = opt$num_learn, 
                    multithread = multithread_opt, 
                    randomize=opt$randomize)
@@ -206,7 +211,7 @@ if(opt$single) {
     
     # Run inference and add inferred sequences to output list.
     seq_variants[[sample]] <- dada(derep_forward, 
-                                   err=err, 
+                                   err=err_forward, 
                                    multithread=multithread_opt)
     
     # Add read counts to log dataframe for debug purposes.
@@ -237,7 +242,8 @@ if(opt$single) {
   if(! identical(forward_samples, reverse_samples)){
     stop(paste("\n\nSample names parsed from forward and reverse filenames don't match.",
                "\nForward sample name:", forward_samples,
-               "\nReverse sample name:", reverse_samples))
+               "\nReverse sample name:", reverse_samples,
+               "\n\nUse the -s option if your reads are single-end.\n"))
   }
   
   if(opt$verbose) {
@@ -255,6 +261,12 @@ if(opt$single) {
         "trimOverhang =", opt$trimOverhang, "\n")
   }
   
+  # Learn error model for forward reads.
+  err_reverse <- learnErrors(fls = reverse_in, 
+                             nreads = opt$num_learn, 
+                             multithread = multithread_opt, 
+                             randomize=opt$randomize)
+  
   # Loop over all samples.
   for(sample in forward_samples) {
     
@@ -267,8 +279,8 @@ if(opt$single) {
     derep_reverse <- derepFastq(reverse_in[[sample]], n=opt$num_derep, verbose=opt$verbose)
     
     # Run inference and add inferred sequences to output list.
-    dada_out_forward <- dada(derep_forward, err=err, multithread=multithread_opt)
-    dada_out_reverse <- dada(derep_reverse, err=err, multithread=multithread_opt)
+    dada_out_forward <- dada(derep_forward, err=err_forward, multithread=multithread_opt)
+    dada_out_reverse <- dada(derep_reverse, err=err_reverse, multithread=multithread_opt)
     
     # Merge forward and reverse reads together
     seq_variants[[sample]] <- mergePairs(dadaF=dada_out_forward,
@@ -286,6 +298,27 @@ if(opt$single) {
     log_counts[sample,] <- c(sample, sum(derep_forward$uniques), sum(derep_reverse$uniques), sum(dada_out_forward$denoised),
                             sum(dada_out_reverse$denoised), sum(seq_variants[[sample]]$abundance))
   }
+}
+
+if(opt$plot_errors) {
+  
+  if(opt$verbose){
+    cat("Plotting estimated error models.\n\n")
+  }
+  
+ if(opt$single){
+   pdf("estimated_err.pdf", width=7, height=7)
+   plotErrors(err_forward, nominalQ=TRUE)
+   dev.off()
+ } else{
+   pdf("estimated_forward_err.pdf", width=7, height=7)
+   plotErrors(err_forward, nominalQ=TRUE) 
+   dev.off()
+   
+   pdf("estimated_reverse_err.pdf", width=7, height=7)
+   plotErrors(err_reverse, nominalQ=TRUE) 
+   dev.off()
+ }
 }
 
 # Write out sequence table as RDS.
