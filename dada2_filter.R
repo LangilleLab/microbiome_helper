@@ -88,7 +88,7 @@ option_list <- list(
               metavar = "boolean"),
   
   make_option(c("--id_sep"), type="character", default="\\s",
-              help="The separator between fields in the id line for paired-end FASTQs (default: \"\\s\").", 
+              help="The separator between fields in the id line for paired-end FASTQs (default is whitespace: \"\\s\").", 
               metavar = "character"),
   
   make_option(c("--id_field"), type="character", default=NULL,
@@ -105,20 +105,21 @@ option_list <- list(
 
 )
 
-opt_parser <- OptionParser(option_list=option_list, 
-                           usage = "%prog [options] -f PATH",
-                           
-                           description = paste("\nThis is a wrapper for DADA2 that is based on the authors\'", 
-                                               "filtering step in the big data tutorial available here:",
-                                               "https://benjjneb.github.io/dada2/bigdata.html.\n\nBe sure to cite the DADA2",
-                                               "paper if you use this script:\nCallahan BJ et al. 2016. DADA2:",
-                                               "High-resolution sample inference from Illumina amplicon data.",
-                                               "Nature Methods 13:581-583.\n\nNote this script was tested with",
-                                               "DADA2 v1.4.0\n\nUSAGE NOTE: when passing filtering parameters for paired-end", 
-                                               "reads if you pass one value it will be used for both forward and reverse reads.",
-                                               "\nIf you pass two values separated by a comma then these values will be for the forward",
-                                               "and reverse reads respectively.", sep=" ")
-                          )
+opt_parser <- OptionParser(
+              option_list=option_list, 
+              usage = "%prog [options] -f PATH",
+              description = paste(
+                       "\nThis is a wrapper for DADA2 that is based on the authors\'", 
+                       "filtering step in the big data tutorial available here:",
+                       "https://benjjneb.github.io/dada2/bigdata.html.\n\nBe sure to cite the DADA2",
+                       "paper if you use this script:\nCallahan BJ et al. 2016. DADA2:",
+                       "High-resolution sample inference from Illumina amplicon data.",
+                       "Nature Methods 13:581-583.\n\nNote this script was tested with",
+                       "DADA2 v1.4.0\n\nUSAGE NOTE: when passing filtering parameters for paired-end", 
+                       "reads if you pass one value it will be used for both forward and reverse reads.",
+                       "\nIf you pass two values separated by a comma then these values will be for the forward",
+                       "and reverse reads respectively.", sep=" ")
+                        )
 
 opt <- parse_args(opt_parser)
 
@@ -150,9 +151,29 @@ parse_dada2_filt_params <- function(in_param, single_end, param_name) {
   }
   
   if (length(in_param_split) == 1) {
-    return(as.numeric(in_param_split[1]))
+    result = tryCatch({
+      return(as.numeric(in_param_split[1]))
+    }, warning = function(w) {
+      stop("Warning!")
+    }, error = function(e) {
+      stop(paste("Error input parameter", 
+                 param_name, "of",
+                 in_param_split[1],
+                 "is not numeric.", sep=" "))
+    })
   } else {
-    return(c(as.numeric(in_param_split[1]), as.numeric(in_param_split[2])))
+    result = tryCatch({
+      return(c(as.numeric(in_param_split[1]), as.numeric(in_param_split[2])))
+    }, warning = function(w) {
+      stop("Warning!")
+    }, error = function(e) {
+      stop(paste("Error at least 1 input parameter for", 
+                 param_name, "of",
+                 in_param_split[1], "or",
+                 in_param_split[2],
+                 "is not numeric.", sep=" "))
+    })
+    
   }
 }
 
@@ -252,7 +273,8 @@ if (opt$single) {
   if(! identical(forward_samples, reverse_samples)){
     stop(paste("\n\nSample names parsed from forward and reverse filenames don't match.",
                "\nForward sample name:", forward_samples,
-               "\nReverse sample name:", reverse_samples))
+               "\nReverse sample name:", reverse_samples,
+               "\n\nUse the -s option if your reads are single-end.\n"))
   }
   
   if(opt$verbose) {
