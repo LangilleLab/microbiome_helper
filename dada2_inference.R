@@ -308,15 +308,15 @@ if(opt$plot_errors) {
   
  if(opt$single){
    pdf("estimated_err.pdf", width=7, height=7)
-   plotErrors(err_forward, nominalQ=TRUE)
+   print(plotErrors(err_forward, nominalQ=TRUE))
    dev.off()
  } else{
    pdf("estimated_forward_err.pdf", width=7, height=7)
-   plotErrors(err_forward, nominalQ=TRUE) 
+   print(plotErrors(err_forward, nominalQ=TRUE))
    dev.off()
    
    pdf("estimated_reverse_err.pdf", width=7, height=7)
-   plotErrors(err_reverse, nominalQ=TRUE) 
+   print(plotErrors(err_reverse, nominalQ=TRUE)) 
    dev.off()
  }
 }
