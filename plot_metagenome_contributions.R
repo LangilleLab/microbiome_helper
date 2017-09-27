@@ -99,7 +99,7 @@ return_nearest_lineage <- function( input  , level  ) {
 	# distinguish unclassified and unassigned taxa
 
 	taxa_levels <- c( "Kingdom" , "Phylum" , "Class" , "Order" , "Family" , "Genus" , "Species", "OTU" )
-	missing_taxa <- c( "p__" , "c__" , "o__" , "f__" , "g__" , "s__" , "" )
+	missing_taxa <- c( "p__" , "c__" , "o__" , "f__" , "g__" , "s__" , "", "Unclassified")
 
 	starting_index <- which( taxa_levels == level ) - 1
 
@@ -142,7 +142,7 @@ fix_missing_taxa <- function( table , tax_level ) {
   }
   
   # If a taxa label matches any of these strings then that means it's either unclassified or unassigned (in the case of "")
-  missing_taxa <- c( "p__" , "c__" , "o__" , "f__" , "g__" , "s__" , "")
+  missing_taxa <- c( "p__" , "c__" , "o__" , "f__" , "g__" , "s__" , "", "Unclassified")
     
   missing_rows <- which( table[ , tax_level ] %in% missing_taxa )
 
@@ -162,7 +162,7 @@ check_unique_parents <- function( table , level ) {
 	# This should catch issues where the same species name is used by 2 different genera
 
 	taxa_levels <- c( "Kingdom" , "Phylum" , "Class" , "Order" , "Family" , "Genus" , "Species")
-	missing_taxa <- c( "p__" , "c__" , "o__" , "f__" , "g__" , "s__" , "" )
+	missing_taxa <- c( "p__" , "c__" , "o__" , "f__" , "g__" , "s__" , "", "Unclassified")
 
 	higher_levels <- taxa_levels[ 1:(which(taxa_levels %in% level) - 1 ) ]
 
