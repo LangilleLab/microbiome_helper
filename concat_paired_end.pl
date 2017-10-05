@@ -8,13 +8,15 @@ use Pod::Usage;
 use Parallel::ForkManager;
 
 
-my ($gzip,$write_only,$parallel,$help);
+my ($gzip,$write_only,$parallel,$no_R_match,$full_name,$help);
 my $out_dir='./';
 my $res = GetOptions("out_dir=s" => \$out_dir,
 		     "parallel:i"=>\$parallel,
 		     "gzip"=>\$gzip,
 		     "write_only"=>\$write_only,
-		     "help"=>\$help,
+                     "no_R_match"=>\$no_R_match,
+		     "full_name"=>\$full_name,
+               	     "help"=>\$help,
     )or pod2usage(2);
 
 pod2usage(-verbose=>2) if $help;
@@ -44,28 +46,41 @@ system("mkdir -p $out_dir");
 my %paired_files;
 foreach my $file (@files){
     my ($file_name,$dir,$suffix)=fileparse($file,qr/(\.fasta|\.fastq)\.*[^.]*/);
-    if($file_name =~ /(.+)_R([1|2])[\.|_]*/){
-	$paired_files{$1.$suffix}[$2-1]=$file;
+    
+    if($no_R_match){ 
+	if($file_name =~ /(.+)_([1|2])$/){
+		$paired_files{$1.$suffix}[$2-1]=$file;
+	} else {
+		warn "Input file does not contain '_1'or '_2' in name: $file. Are you sure you should be using the --no_R_match option?";
+	}
 
-### removed since fastqs often have "_1" and "_2" in ID 
-###    #attempt different naming scheme
-###    }elsif($file_name =~ /(.+)_([1|2])/){
-####	$paired_files{$1.$suffix}[$2-1]=$file;
+    } else {
 
-    }else{
-###	warn "Input file does not contain '_R1_'and '_R2_' or '_1' and '_2' in name: $file";
-	warn "Input file does not contain '_R1_'and '_R2_' (or '_R1[.]' and '_R2[.]' in name: $file";
-    }
+    	if($file_name =~ /(.+)_R([1|2])[\.|_]*/){
+		$paired_files{$1.$suffix}[$2-1]=$file;
+        } else {
+		warn "Input file does not contain '_R1_'and '_R2_' (or '_R1[.]' and '_R2[.]' in name: $file";
+        }
+   }
 }
 
-#my @out_files = map ($metaphlan_out_dir.$_, keys %paired_files);
-
 foreach my $name (keys %paired_files){
+
+    # Unless full_name option set take name to be first field after delimiting by "_".
+    my $out_name = undef;
+
+    if(! $full_name){
+  	my ($file_name,$dir,$suffix)=fileparse($name,qr/(\.fasta|\.fastq)\.*[^.]*/);
+        $out_name = (split(/_/, $file_name))[0] . $suffix;
+    } else {
+	$out_name = $name;
+    }
+
     my $pid = $pm->start and next; 
 
     my $cmd=join(' ','cat',@{$paired_files{$name}});
     
-    my $out_file=$out_dir.'/'.$name;
+    my $out_file=$out_dir.'/'.$out_name;
     $cmd.= " > $out_file";
     print $cmd,"\n";
     unless($write_only){
@@ -78,11 +93,11 @@ __END__
 
 =head1 Name
 
-concat_paired_end.pl - Concatenate paired end files (fasta or fastq) (gzipped or not)
+concat_paired_end.pl - Concatenate paired end files (fasta or fastq) (gzipped or not). By default the sample name is taken to be the first field after delmiting the file by "_".
 
 =head1 USAGE
 
-concat_paired_end.pl [-p [<# proc>] -h] -o <out_dir> <list of paired end files>
+concat_paired_end.pl [-p [<# proc>] --write_only --no_R_match -h] -o <out_dir> <list of paired end files>
 
 E.g.
 
@@ -121,6 +136,14 @@ Using this option without a value will use all CPUs on machine, while giving it 
 =item B<-w, --write_only>
 
 Write the commands that will be run without actually running them.
+
+=item B<-n, --no_R_match>
+
+Identify forward and reverse pairs based on "_1" and "_2" directly before the suffix (e.g. _1.fastq) rather than "_R1_" and "_R2_".
+
+=item B<-f, --full_name>
+
+Sample names should be specified by full string upstream of forward/reverse identifier rather than just the first field when delimiting by "_".
 
 =item B<-h, --help>
 
