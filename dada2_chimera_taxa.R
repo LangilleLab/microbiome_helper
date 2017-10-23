@@ -11,17 +11,26 @@ option_list <- list(
               help="Location of input .RDS file (required)." , metavar="path"),
   
   make_option(c("-r", "--refFasta"), type="character", default=NULL,
-              help="Location of reference fasta to use for taxa assignment (required).", 
+              help=paste("Location of reference fasta to use for taxa assignment",
+                         "(required when --skip_taxa not set).", sep = " "), 
               metavar="path"),
   
   make_option(c("-s", "--ref_species"), type="character", default=NULL,
               help=paste("Location of reference fasta to use for species",
-                         "assignment (required when --skip_species is FALSE).", 
+                         "assignment (required when --skip_species not set).", 
                          sep=""), 
               metavar="path"),
   
+  make_option(c("--seed"), type="integer", default=NULL,
+              help="Random seed to make output reproducible.", metavar = "integer"),
+  
   make_option(c("-t", "--threads"), type="integer", default=1,
               help="Number of threads to use (default: 1).", metavar="integer"),
+ 
+  make_option(c("--skip_taxa"), action = "store_true", type="logical", default=FALSE,
+              help=paste("Flag to indicate that all taxa assignment steps should be skipped.",
+                         "(default: FALSE).", sep=" "),
+              metavar = "boolean"),
   
   make_option(c("--skip_species"), action = "store_true", type="logical", default=FALSE,
               help=paste("Flag to indicate that the species assignment step should be skipped.",
@@ -135,13 +144,13 @@ if(is.null(opt$input)) {
 }
 
 # Check that refFasta set.
-if(is.null(opt$refFasta)) {
+if(!opt$skip_taxa & is.null(opt$refFasta)) {
   stop("Path to refFasta needs to be set.")
 }
 
 # Check that ref_species set if doing species assignment.
-if(!opt$skip_species & is.null(opt$refFasta)) {
-  stop("Path to refFasta needs to be set.")
+if(!opt$skip_taxa & !opt$skip_species & is.null(opt$ref_species)) {
+  stop("Path to FASTA for species assignment needs to be set.")
 }
 
 # Check that chimera method is one of 3 possible choices.
@@ -176,6 +185,14 @@ if(opt$verbose) {
         "ignoreNNegatives =", opt$ignoreNNegatives, "\n\n")
 }
 
+# Set random seed for reproducibility if set.
+if(! is.null(opt$seed)) {
+  set.seed(opt$seed)
+  if(opt$verbose){
+    cat("Random seed:", as.character(opt$seed), "\n")
+  }
+}
+
 seqtab_nochim <- removeBimeraDenovo(in_seqtab, 
                                     method = opt$chimera_method, 
                                     minFoldParentOverAbundance = opt$minFoldParentOverAbundance,
@@ -188,47 +205,72 @@ seqtab_nochim <- removeBimeraDenovo(in_seqtab,
                                     multithread = multithread_opt,
                                     verbose = opt$verbose)
 
-if(opt$verbose) {
-  cat("Running assignTaxonomy with below options.\n\n",
-      "refFasta =", opt$refFasta, "\n",
-      "minBoot =", opt$minBoot, "\n",
-      "tryRC =", opt$tryRC, "\n\n")
-}
-
-# Run taxonomy assignment.
-taxa <- assignTaxonomy(seqs = seqtab_nochim, 
-                       refFasta = opt$refFasta,
-                       minBoot = opt$minBoot,
-                       tryRC = opt$tryRC,
-                       multithread = multithread_opt,
-                       verbose = opt$verbose)
-
-if(! opt$skip_species) {
+if(!opt$skip_taxa) {
 
   if(opt$verbose) {
-    cat("\n\nRunning addSpecies with below options.\n",
-        "refFasta =", opt$ref_species, "\n",
-        "allowMultiple =", opt$allowMultiple, "\n\n")
+    cat(
+      "Running assignTaxonomy with below options.\n\n",
+      "refFasta =",
+      opt$refFasta,
+      "\n",
+      "minBoot =",
+      opt$minBoot,
+      "\n",
+      "tryRC =",
+      opt$tryRC,
+      "\n\n"
+    )
+  }
+
+  # Run taxonomy assignment.
+  taxa <- assignTaxonomy(
+    seqs = seqtab_nochim,
+    refFasta = opt$refFasta,
+    minBoot = opt$minBoot,
+    tryRC = opt$tryRC,
+    multithread = multithread_opt,
+    verbose = opt$verbose
+  )
+  
+  if (!opt$skip_species) {
+    if (opt$verbose) {
+      cat(
+        "\n\nRunning addSpecies with below options.\n",
+        "refFasta =",
+        opt$ref_species,
+        "\n",
+        "allowMultiple =",
+        opt$allowMultiple,
+        "\n\n"
+      )
+    }
+    
+    # Add exact species assignment where possible.
+    taxa_species <- addSpecies(
+      taxtab = taxa,
+      refFasta = opt$ref_species,
+      allowMultiple = opt$allowMultiple,
+      verbose = opt$verbose
+    )
+    
+    # Write out taxa + species table.
+    saveRDS(taxa_species, opt$sp_out)
+    
+  } else {
+    if (opt$verbose) {
+      cat("\n\nSkipping addSpecies step.\n\n")
+    }
   }
   
-  # Add exact species assignment where possible.
-  taxa_species <- addSpecies(taxtab = taxa, 
-                             refFasta = opt$ref_species, 
-                             allowMultiple = opt$allowMultiple, 
-                             verbose = opt$verbose)
-  
-  # Write out taxa + species table.
-  saveRDS(taxa_species, opt$sp_out)
-  
+  # Write out taxa (without species) table.
+  saveRDS(taxa, opt$tax_out)
+
 } else {
-  if(opt$verbose) {
-    cat("\n\nSkipping addSpecies step.\n\n")
+  if (opt$verbose) {
+    cat("\n\nSkipping all taxa assignment steps.\n\n")
   }
 }
-
-# Write out taxa (without species) table.
-saveRDS(taxa, opt$tax_out)
-
+  
 # Write out count table as RDS.
 saveRDS(seqtab_nochim, opt$count_out)
 
