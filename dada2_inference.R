@@ -90,7 +90,15 @@ option_list <- list(
                          "and reverse reads are trimmed off. This can happen when the reads",
                          "are bigger than the amplicon (default: False).", sep=" "), 
               metavar = "boolean"),
-  
+ 
+  make_option(c("--OMEGA_A"), type="numeric", default=1e-40,
+	     help="Threshold for when DADA2 calls unique sequences as clusters (default=1e-40)",
+             metavar="numeric"),
+
+  make_option(c("--BAND_SIZE"), type="integer", default=16,
+             help="Parameter for banding N-W alignments to restrict number of insertions (default=16)",
+             metavar="integer"),
+ 
   make_option(c("--log"), type="character", default="dada2_inferred_read_counts.txt",
               help="Output logfile for read count table (default: dada2_inferred_read_counts.txt).", 
               metavar="path"),
@@ -146,9 +154,14 @@ names(forward_in) <- forward_samples
 # Read in and print out DADA2 version.
 library("dada2")
 
+# Set DADA2 options:
+setDadaOpt(OMEGA_A = opt$OMEGA_A,
+           BAND_SIZE = opt$BAND_SIZE)
+
 if(opt$verbose) {
   cat("Running DADA2 version:", as.character(packageVersion("dada2")), "\n")
-
+  cat("Setting options of OMEGA_A=", as.character(opt$OMEGA_A), ", ",
+      "BAND_SIZE=", as.character(opt$BAND_SIZE))
 }
 
 # Set random seed for reproducibility if set.
