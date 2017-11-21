@@ -12,7 +12,7 @@ my $metaphlan_dir='/usr/local/metaphlan2/';
 #location to store intermediate metaphlan files
 my $metaphlan_out_dir='./metaphlan_out/';
 
-my $bowtie='sensitive-local';
+my $bowtie='very-sensitive';
 my $align_len=50;
 
 my ($final_out_file,$parallel,$help);
@@ -159,7 +159,7 @@ This sets the minimum alignment length for sequences to match between the reads 
 
 =item B<-b, --bowtie <alignment option>>
 
-Bowtie2 alignment option. Default: "sensitive-local". 
+Bowtie2 alignment option. Default: "very-sensitive". 
 
 =item B<-h, --help>
 
