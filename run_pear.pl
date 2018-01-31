@@ -55,7 +55,7 @@ foreach my $file (@files){
     }elsif($file_name =~ /(.+)_([1|2])/){
 	$paired_files{$1}[$2-1]=$file;
     }else{
-	warn "Input file does not contain '_R1_' or '_R2_' (or alternatively '_R1.' or '_R2.') in name: $file";
+	warn "Input file \"$file\" does not contain '_R1_' or '_R2_' (or alternatively '_R1.' or '_R2.').";
     }
 }
 
