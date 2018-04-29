@@ -29,6 +29,7 @@ parser.add_argument("-i","--input",help="Input BIOM file", required=True)
 
 parser.add_argument("-o","--output",help="Output BIOM file", required=True)
 
+parser.add_argument("-f", "--filter_level", type=str, help="The cutoff abundance filter level. i.e keep all sequences above '-f '%", required=False, default=0.1)
 
 def write_biom_table(biom_table, biom_table_fp, compress=True,
                      write_hdf5=HAVE_H5PY, format_fs=None):
@@ -76,7 +77,7 @@ def main():
 
     num_samples=table.length(axis='sample')
     num_reads=table.sum(axis='whole')
-    error_rate=0.001
+    error_rate=float(args.filter_level)/100
 
     cut_off=math.ceil(num_reads/num_samples*error_rate)
 
