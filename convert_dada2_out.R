@@ -11,8 +11,8 @@ option_list <- list(
               help="Input RDS file of dada2 sequence table (required)." , 
               metavar="path"),
   
-  make_option(c("-b", "--biom"), type="character", default="seqtab.biom",
-              help="Path to output BIOM file (required).", 
+  make_option(c("-b", "--biom"), type="character", default="seqtab.biom.tsv",
+              help="Path to output BIOM file in TSV format (required).", 
               metavar="path"),
   
   make_option(c("-f", "--fasta"), type="character", default="seqtab.fasta",
@@ -39,7 +39,7 @@ opt_parser <- OptionParser(
                    option_list=option_list, 
                    usage = "%prog [options] -i seqtab_final.rds -b seqtab.biom -f seqtab.fasta",
                    description = paste(
-                     "Script to convert dada2 sequence table to a BIOM and FASTA file.\n",
+                     "Script to convert dada2 sequence table to a BIOM (in legacy TSV) and FASTA file.\n",
                      "You can also specify an RDS file containing the taxa labels to create",
                      "a BIOM observation metadata table for taxonomy", sep="")
 )
@@ -69,10 +69,8 @@ if(is.null(opt$fasta)) {
 # Read in other required packages.
 if(opt$verbose){
   library("ShortRead")
-  library("biom")
 } else {
   suppressMessages(library("ShortRead"))
-  suppressMessages(library("biom"))
 }
 
 in_seqtab <- readRDS(opt$input)
@@ -94,9 +92,24 @@ if(opt$verbose){
   cat("Writing output biom table to", opt$biom, "\n\n")
 }
 
-# Write out biom file.
-biom::write_biom(biom::make_biom(data = t(in_seqtab)), 
-                 biom_file = opt$biom)
+# Transpose sequence table and add ids as new column.
+in_seqtab_t <- as.data.frame(t(in_seqtab))
+orig_col <- colnames(in_seqtab_t)
+in_seqtab_t$ids <- rownames(in_seqtab_t)
+in_seqtab_t <- in_seqtab_t[, c("ids", orig_col)]
+
+col_df <- data.frame(matrix(c("#OTU ID", orig_col), nrow=1, ncol=ncol(in_seqtab_t)),
+                     stringsAsFactors = FALSE)
+
+colnames(col_df) <- colnames(in_seqtab_t)
+
+# Write out BIOM file in legacy TSV format.
+write.table(x = rbind(col_df, in_seqtab_t),
+            file = opt$biom,
+            quote = FALSE,
+            sep = "\t",
+            col.names = FALSE,
+            row.names = FALSE)
 
 # If taxa file specified then also read that in.
 if(!is.null(opt$taxa_in)){
