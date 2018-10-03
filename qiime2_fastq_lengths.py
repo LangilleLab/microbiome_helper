@@ -27,7 +27,6 @@ parser.add_argument("-p", "--proc", required=False, type=int, default=1,
 parser.add_argument("-o", "--output", help="Name of output read count table",
                     required=True, type=str)
 
-
 def fastq_read_num(fastq):
     '''Runs system calls to determine number of reads in gzipped fastq''' 
 
@@ -76,7 +75,7 @@ def reads_per_qza_gzipped_fastq(qza, num_proc):
         qza_name = os.path.basename(qza)
         sample_reads[qza_name] = {}
 
-        export_cmd = ["qiime", "tools", "export", qza, "--output-dir", tmp]
+        export_cmd = ["qiime", "tools", "export", "--input-path", qza, "--output-path", tmp]
         subprocess.call(export_cmd)
 
         # Get list of all FASTQs in tmp folder.
