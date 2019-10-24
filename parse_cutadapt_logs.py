@@ -5,7 +5,7 @@ from __future__ import print_function
 __author__ = "Gavin Douglas"
 __credits__ = ["Gavin Douglas"]
 __license__ = "GPL"
-__version__ = "1.0"
+__version__ = "1.1"
 __maintainer__ = "Gavin Douglas"
 __email__ = "gavin.douglas@dal.ca"
 __status__ = "Development"
@@ -117,7 +117,7 @@ def main():
                     if string2match in line:
 
                         count_regex = r".*" + re.escape(string2match) + \
-                                       "\s+" + "([0-9]+,*[0-9]*).*"
+                                       "\s+" + "([0-9,]+).*"
 
                         count_full_match = re.match(count_regex, line)
 
@@ -132,7 +132,7 @@ def main():
                                          format(string2match=string2match,
                                                 log=log))
 
-                            # Remove comma.
+                            # Remove comma if present.
                             count_match = count_match.replace(",", "")
 
                             read_counts[count_category] = count_match
