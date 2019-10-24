@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-from __future__ import division
+
+from __future__ import division, print_function
 
 __author__ = "Morgan Langille"
 __credits__ = ["Morgan Langille"]
 __license__ = "GPL"
-__version__ = "0.1"
+__version__ = "0.2"
 __maintainer__ = "Morgan Langille"
 __email__ = "morgan.g.i.langille@gmail.com"
 __status__ = "Development"
@@ -34,7 +35,7 @@ biom_to_stamp.py otu.biom > otu.spf
                                  ,formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument("biom_file",help="input BIOM file")
 
-parser.add_argument("-m","--metadata",help="Name of metadata field to be used (e.g. taxonomy, KEGG_Description, KEGG_Pathways")
+parser.add_argument("-m","--metadata",help="Name of metadata field to be used (e.g. taxonomy, KEGG_Description, KEGG_Pathways)")
 
 script_info = {}
 script_info['brief_description'] = "Convert a BIOM table to a compatible STAMP profile table."
@@ -115,7 +116,7 @@ def main():
     #add the sample ids to the header line
     header.extend(table.ids())
     
-    print "\t".join(header)
+    print("\t".join(header))
 
     #now process each observation (row in the table)
     for obs_vals,obs_id,obs_metadata in table.iter(axis='observation'):
@@ -139,7 +140,7 @@ def main():
 
         #Add count data to the row
         row.extend(map(str,obs_vals))
-        print "\t".join(row)
+        print("\t".join(row))
         
     
 
