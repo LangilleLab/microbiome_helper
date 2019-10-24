@@ -5,7 +5,7 @@ from __future__ import division, print_function
 __author__ = "Morgan Langille"
 __credits__ = ["Morgan Langille"]
 __license__ = "GPL"
-__version__ = "0.1"
+__version__ = "0.2"
 __maintainer__ = "Morgan Langille"
 __email__ = "morgan.g.i.langille@gmail.com"
 __status__ = "Development"
