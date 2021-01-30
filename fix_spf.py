@@ -12,7 +12,7 @@ from tempfile import TemporaryDirectory
 
 __author__ = "Gavin Douglas"
 __license__ = "GPL"
-__version__ = "0.3"
+__version__ = "1.0"
 
 parser = argparse.ArgumentParser(
 
@@ -24,11 +24,10 @@ description="Fix STAMP-formatted OTU table so all level labels in the file form 
             "with multiple parents will be distinguished by adding \"_dupN\" "
             "to the end of the label. Where N starts at 0 and is incremented "
             "for each new conflicting label (including the first one). "
-            "This script will also accept the option \"--replace_ambig\", "
-            "which is meant for files outputted by QIIME2 with SILVA "
-            "taxonomy. When this option is set all labels containing "
+            "This script will also accept options starting with \"--replace_ambig...\", "
+            "When these options are set all labels containing "
             "\"uncultured\", \"Ambiguous_taxa\", \"metagenome\", or "
-            "\"unidentified\", with \"Unclassified\". In addition, when this "
+            "\"unidentified\", are replaced with \"Unclassified\". In addition, when this "
             "option is set it will also replace labels containing \"unknown\" "
             "with the preceeding label followed by \"_X\". Note that these "
             "labels are all case-insensitive.",
@@ -49,9 +48,15 @@ parser.add_argument("-c", "--col_count", required=False, default=7, type=int,
                          "correspond to taxonomic levels such as Kingdom, "
                          "Phylum, etc.")
 
-parser.add_argument("--replace_ambig", required=False, default=False,
+group = parser.add_mutually_exclusive_group()
+
+
+group.add_argument("--replace_ambig_D_format", required=False, default=False,
                     action='store_true',
-                    help="When set all ambiguous labels (see script "
+                    help="This option is for fixing SILVA taxon ids that "
+                         "start with 'D_X__', where 'X' is a number "
+                         "specifying the taxonomic level. When set all "
+                         "ambiguous labels (see script "
                          "description) will be replaced with "
                          "\"Unclassified\". In addition, when this option is "
                          "set it will also replace labels containing "
@@ -59,7 +64,104 @@ parser.add_argument("--replace_ambig", required=False, default=False,
                          "\"X\".")
 
 
-def replace_ambig_labels(in_spf, out_spf, col_count):
+group.add_argument("--replace_ambig_letter_format", required=False, default=False,
+                    action='store_true',
+                    help="This option is for fixing taxon ids that "
+                         "start with 'x__', where 'x' is any lowercase letter "
+                         "specifying the taxonomic level. For example, "
+                         "the phylum level would be 'p__'. When set all "
+                         "ambiguous labels (see script "
+                         "description) will be replaced with "
+                         "\"Unclassified\". In addition, when this option is "
+                         "set it will also replace labels containing "
+                         "\"unknown\" with the preceeding label followed by "
+                         "\"X\".")
+
+
+def replace_ambig_labels_letter_format(in_spf, out_spf, col_count):
+    '''Function to read in a SPF and to replace all labels containing
+    "uncultured", "Ambiguous_taxa", "metagenome", or "unidentified", with
+    "Unclassified". In addition, when this option is set it will also replace
+    labels containing "unknown with the preceeding label followed by "X". Will
+    write out the new SPF.'''
+
+    outfile = open(out_spf, "w")
+    out_writer = csv.writer(outfile, delimiter="\t", lineterminator="\n")
+
+    str2replace = ['uncultured', 'ambiguous_taxa', 'metagenome',
+                   'unidentified']
+
+    header_marker = 0
+
+    with open(in_spf, "r") as infile:
+
+        for line in infile:
+
+            # Remove newline character and split by tab.
+            line = line.rstrip("\r\n")
+            line_split = line.split("\t")
+
+            # Print out header and go to next line.
+            if header_marker == 0:
+                header_marker += 1
+                outfile.write(line + "\n")
+                continue
+
+            # If no labels are in the set to replace then print out line and
+            # move to next one.
+            str_matches = 0
+
+            for s in str2replace + ['unknown']:
+                if s in line.lower():
+                    str_matches += 1
+
+            if str_matches == 0:
+                outfile.write(line + "\n")
+                continue
+
+            # Get list of all taxonomic levels.
+            taxa = line_split[0:col_count]
+
+            # Loop through taxa and replace any ids in set of strings to
+            # replace with "Unclassified". For any taxa containing "unknown",
+            # replace these ids with the preceeding taxonomic level, but with
+            # the correct DX level and followed by "_X".
+            out_taxa = []
+
+            # Loop over each label (from higher to lower levels).
+            for label_i, label in enumerate(taxa):
+                str_match = False
+
+                for s in str2replace:
+                    if s in label.lower():
+                        str_match = True
+                        break
+
+                if str_match:
+                    out_taxa.append('Unclassified')
+
+                elif 'unknown' in label.lower():
+                    pre_label_i = label_i - 1
+
+                    if pre_label_i < 0 or out_taxa[pre_label_i] == 'Unclassified':
+                        out_taxa.append('Unclassified')
+                    else:
+                        pre_label_search = re.search(r"^[a-z]__(.*)",
+                                                     out_taxa[pre_label_i])
+                        pre_label_taxon = pre_label_search.group(1)
+                        label_level = re.match(r"^[a-z]__", label).group(0)
+                        out_taxa.append(label_level + pre_label_taxon + "_X")
+
+                else:
+                    out_taxa.append(label)
+
+            line_split[0:col_count] = out_taxa
+            out_writer.writerow(line_split)
+
+    outfile.close()
+
+
+def replace_ambig_labels_D_format(in_spf, out_spf, col_count):
     '''Function to read in a SPF and to replace all labels containing
     "uncultured", "Ambiguous_taxa", "metagenome", or "unidentified", with
     "Unclassified". In addition, when this option is set it will also replace
@@ -254,13 +356,24 @@ def main():
 
     args = parser.parse_args()
 
-    if args.replace_ambig:
-        # Replace ambiguous labels and write out to temp directory.
-        # Note that this is done since the two functions used for cleaning up
-        # the SPF were not originally written to be used together.
+    # Replace ambiguous labels and write out to temp directory
+    # (if either replace option set).
+    # Note that this is done since the two functions used for cleaning up
+    # the SPF were not originally written to be used together.
+
+    if args.replace_ambig_D_format:
+
         with TemporaryDirectory() as temp_dir:
             tmp_spf = path.join(temp_dir, "tmp_spf")
-            replace_ambig_labels(args.input, tmp_spf, args.col_count)
+            replace_ambig_labels_D_format(args.input, tmp_spf, args.col_count)
+
+            # Read in SPF file after replacing ambiguous labels.
+            input_spf = pd.read_csv(filepath_or_buffer=tmp_spf, sep='\t')
+
+    elif args.replace_ambig_letter_format:
+        with TemporaryDirectory() as temp_dir:
+            tmp_spf = path.join(temp_dir, "tmp_spf")
+            replace_ambig_labels_letter_format(args.input, tmp_spf, args.col_count)
 
             # Read in SPF file after replacing ambiguous labels.
             input_spf = pd.read_csv(filepath_or_buffer=tmp_spf, sep='\t')
