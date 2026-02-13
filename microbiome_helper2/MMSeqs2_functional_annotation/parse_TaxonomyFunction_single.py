@@ -13,7 +13,7 @@ except ImportError:
 import bz2
 from operator import itemgetter
 
-import argparse, sys, textwrap
+import argparse, sys, textwrap, os, pickle
 
 parser=argparse.ArgumentParser()
 
@@ -49,20 +49,39 @@ def main():
 
     # map2ECflag = args.map2EC
     
-    genlenf = bz2.BZ2File(database+'/GeneLength.pbz2', 'rb')
-    genelendict = cPickle.load(genlenf)
+    if os.path.exists(database+'/GeneLength.dict'):
+      with open(database+'/GeneLength.dict', 'rb') as f:
+        genelendict = pickle.load(f)
+    elif os.path.exists(database+'/GeneLength.pbz2'):
+      genlenf = bz2.BZ2File(database+'/GeneLength.pbz2', 'rb')
+      genelendict = cPickle.load(genlenf)
+    else:
+      sys.exit('No gene length file (GeneLength.dict/GeneLength.pbz2) found in '+database)
+    print('Imported gene length dictionary')
+  
+    if os.path.exists(database+'/ECmapped.dict'):
+      with open(database+'/ECmapped.dict', 'rb') as f:
+        Seq2ECdict = pickle.load(f)
+    elif os.path.exists(database+'/ECmapped.pbz2'):
+      ECmapf = bz2.BZ2File(database+'/ECmapped.pbz2', 'rb')
+      Seq2ECdict = cPickle.load(ECmapf)
+    else:
+      sys.exit('No UniRef to EC dictionary (ECmapped.dict/ECmapped.pbz2) found in '+database)
+    print('Imported UniRef to EC dictionary')
+
+    for seq in Seq2ECdict:
+      if isinstance(Seq2ECdict[seq], str):
+        Seq2ECdict[seq] = [Seq2ECdict[seq]]
     
-    # RSgenlenf = bz2.BZ2File('RefGeneLength.pbz2', 'rb')
-    # RSgenelendict = cPickle.load(RSgenlenf)
-    # 
-    # UPgenlenf = bz2.BZ2File('UnirefGeneLength.pbz2', 'rb')
-    # UPgenelendict = cPickle.load(UPgenlenf)
-    # 
-    # COGgenlenf = bz2.BZ2File('COGDBGeneLength.pbz2', 'rb')
-    # COGgenelendict = cPickle.load(COGgenlenf)
-    
-    ECmapf = bz2.BZ2File(database+'/ECmapped.pbz2', 'rb')
-    Seq2ECdict = cPickle.load(ECmapf)
+    if os.path.exists(database+'/EC_descriptions.dict'):
+      with open(database+'/EC_descriptions.dict', 'rb') as f:
+        EC2descdict = pickle.load(f)
+    elif os.path.exists(database+'/EC_descriptions.pbz2'):
+      ECdescf = bz2.BZ2File(database+'/EC_descriptions.pbz2', 'rb')
+      EC2descdict = cPickle.load(ECdescf)
+    else:
+      print("No EC descriptions dictionary (EC_descriptions.dict/EC_descriptions.pbz2) found in "+database+". Continuing, but be aware that this means that you won't get files with descriptions")
+    print('Imported EC description dictionary')
     
     # if (map2ECflag == "Y"):
     #     
@@ -228,7 +247,7 @@ def main():
                 EChash = mapRS2EC(funchash,Seq2ECdict,genedict)
                     
                 EC_mapped = len(EChash)
-                perc_EC_mapped = (EC_mapped/tot_reads_mapped)*100
+                perc_EC_mapped = (EC_mapped/func_mapped)*100
                     
                 print ("Total ECs detected: ",str(len(EChash)) + " percent " + str(perc_EC_mapped))
                 
@@ -564,7 +583,7 @@ def parseUnirefFuncfile(filename):
     with open(filename) as f:
         for line in f:
             #fields = line.split("\t")
-            (key, val) = line.split("\t")
+            (key, val) = line.replace('\n', '').split("\t")
             d[str(key)] = str(val)
     return d
 
@@ -591,7 +610,7 @@ def parseKraken2Taxafile(filename):
     d = {}
     with open(filename) as f:
         for line in f:
-            fields = line.split("\t")
+            fields = line.replace('\n', '').split("\t")
             classified = fields[0]
             key = fields[1]
             val = fields[2]    
