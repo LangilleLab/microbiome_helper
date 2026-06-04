@@ -26,7 +26,7 @@ def main():
     df = df.reindex(columns= cols)
     print (df.head())
     
-    pd.DataFrame.to_csv(df, path_or_buf=outputfileN, sep='\t', na_rep='', header=True, index=False, mode='w', line_terminator='\n', escapechar=None, decimal='.')
+    pd.DataFrame.to_csv(df, path_or_buf=outputfileN, sep='\t', na_rep='', header=True, index=False, mode='w', lineterminator='\n', escapechar=None, decimal='.')
     
 if __name__ == "__main__":
         main();
