@@ -29,7 +29,7 @@ description="Fix STAMP-formatted OTU table so all level labels in the file form 
             "\"uncultured\", \"Ambiguous_taxa\", \"metagenome\", or "
             "\"unidentified\", are replaced with \"Unclassified\". In addition, when this "
             "option is set it will also replace labels containing \"unknown\" "
-            "with the preceeding label followed by \"_X\". Note that these "
+            "with the preceding label followed by \"_X\". Note that these "
             "labels are all case-insensitive.",
 
 epilog='''Usage example: fix_spf.py -i otu_table.spf -o otu_table_fixed.spf''',
@@ -60,7 +60,7 @@ group.add_argument("--replace_ambig_D_format", required=False, default=False,
                          "description) will be replaced with "
                          "\"Unclassified\". In addition, when this option is "
                          "set it will also replace labels containing "
-                         "\"unknown\" with the preceeding label followed by "
+                         "\"unknown\" with the preceding label followed by "
                          "\"X\".")
 
 
@@ -74,7 +74,7 @@ group.add_argument("--replace_ambig_letter_format", required=False, default=Fals
                          "description) will be replaced with "
                          "\"Unclassified\". In addition, when this option is "
                          "set it will also replace labels containing "
-                         "\"unknown\" with the preceeding label followed by "
+                         "\"unknown\" with the preceding label followed by "
                          "\"X\".")
 
 
@@ -82,7 +82,7 @@ def replace_ambig_labels_letter_format(in_spf, out_spf, col_count):
     '''Function to read in a SPF and to replace all labels containing
     "uncultured", "Ambiguous_taxa", "metagenome", or "unidentified", with
     "Unclassified". In addition, when this option is set it will also replace
-    labels containing "unknown with the preceeding label followed by "X". Will
+    labels containing "unknown with the preceding label followed by "X". Will
     write out the new SPF.'''
 
     outfile = open(out_spf, "w")
@@ -124,7 +124,7 @@ def replace_ambig_labels_letter_format(in_spf, out_spf, col_count):
 
             # Loop through taxa and replace any ids in set of strings to
             # replace with "Unclassified". For any taxa containing "unknown",
-            # replace these ids with the preceeding taxonomic level, but with
+            # replace these ids with the preceding taxonomic level, but with
             # the correct DX level and followed by "_X".
             out_taxa = []
 
@@ -165,7 +165,7 @@ def replace_ambig_labels_D_format(in_spf, out_spf, col_count):
     '''Function to read in a SPF and to replace all labels containing
     "uncultured", "Ambiguous_taxa", "metagenome", or "unidentified", with
     "Unclassified". In addition, when this option is set it will also replace
-    labels containing "unknown with the preceeding label followed by "X". Will
+    labels containing "unknown with the preceding label followed by "X". Will
     write out the new SPF.'''
 
     outfile = open(out_spf, "w")
@@ -207,7 +207,7 @@ def replace_ambig_labels_D_format(in_spf, out_spf, col_count):
 
             # Loop through taxa and replace any ids in set of strings to
             # replace with "Unclassified". For any taxa containing "unknown",
-            # replace these ids with the preceeding taxonomic level, but with
+            # replace these ids with the preceding taxonomic level, but with
             # the correct DX level and followed by "_X".
             out_taxa = []
 
